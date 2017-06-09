@@ -287,37 +287,4 @@ namespace argparse {
         return long_option()[0] != '-';
     }
 
-    //DefaultConvert specializations for bool
-    // By default std::stringstream doesn't accept "true" or "false"
-    // as boolean values.
-    template<>
-    bool DefaultConverter<bool>::from_str(std::string str) {
-        bool val = false;
-
-        str = tolower(str);
-        if (str == "0" || str == "false") {
-            val = false; 
-        } else if (str == "1" || str == "true") {
-            val = true;
-        } else {
-            throw ArgParseConversionError("Invalid conversion from string");
-        }
-
-        return val;
-    }
-
-    template<>
-    std::string DefaultConverter<bool>::to_str(bool val) {
-        if (val) {
-            return "true";
-        } else {
-            return "false";
-        }
-    }
-
-    template<>
-    std::vector<std::string> DefaultConverter<bool>::default_choices() {
-        return {"true", "false"};
-    }
-
 } //namespace

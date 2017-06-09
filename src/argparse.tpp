@@ -67,11 +67,11 @@ namespace argparse {
 
     template<typename T, typename Converter>
     void SingleValueArgument<T,Converter>::set_dest_to_default() {
-        set_dest_to_value(default_value());
+        set_dest_to_value_from_str(default_value());
     }
 
     template<typename T, typename Converter>
-    void SingleValueArgument<T,Converter>::set_dest_to_value(std::string val) {
+    void SingleValueArgument<T,Converter>::set_dest_to_value_from_str(std::string val) {
         set_dest_to_value(Converter().from_str(val));
     }
 
@@ -130,41 +130,5 @@ namespace argparse {
     }
 
 #endif
-
-    /*
-     * DefaultConverter
-     */
-    template<typename T>
-    T DefaultConverter<T>::from_str(std::string str) {
-        std::stringstream ss(str);
-
-        T val;
-        ss >> val;
-
-        bool eof = ss.eof();
-        bool fail = ss.fail();
-        bool converted_ok = eof && !fail;
-        if (!converted_ok) {
-            throw ArgParseError("Invalid conversion from string");
-        }
-
-        return val;
-    }
-
-    template<typename T>
-    std::string DefaultConverter<T>::to_str(T val) {
-        std::stringstream ss;
-        ss << val;
-
-        bool converted_ok = ss.eof() && !ss.fail();
-        if (!converted_ok) {
-            throw ArgParseError("Invalid conversion to string");
-        }
-        return ss.str();
-    }
-    template<typename T>
-    std::vector<std::string> DefaultConverter<T>::default_choices() {
-        return {};
-    }
 
 } //namespace

@@ -1,4 +1,5 @@
 #include "argparse_util.hpp"
+#include <cstring>
 
 namespace argparse {
 
@@ -42,4 +43,10 @@ namespace argparse {
         return lower;
     }
 
+    const char* strdup(const char* str) {
+        size_t len = std::strlen(str);
+        char* res = new char[len+1]; //+1 for terminator
+        std::strcpy(res, str);
+        return res;
+    }
 } //namespace

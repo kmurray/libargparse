@@ -3,13 +3,14 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
-#include <stdexcept>
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <map>
 
 #include "argparse_formatter.hpp"
+#include "argparse_default_converter.hpp"
+#include "argparse_error.hpp"
 
 namespace argparse {
 
@@ -24,15 +25,6 @@ namespace argparse {
         APPEND,
         COUNT
     };
-
-    template<typename T>
-    class DefaultConverter {
-        public:
-            T from_str(std::string str);
-            std::string to_str(T val);
-            std::vector<std::string> default_choices();
-    };
-
 
     class ArgumentParser {
         public:
@@ -162,7 +154,7 @@ namespace argparse {
         public: //Mutators
             void set_dest_to_default() override;
 
-            void set_dest_to_value(std::string value);
+            void set_dest_to_value_from_str(std::string value);
             void set_dest_to_value(T value);
         private: //Data
             T& dest_;
@@ -187,14 +179,6 @@ namespace argparse {
             std::vector<T> default_values_;
     };
 #endif
-
-    class ArgParseError : public std::runtime_error {
-        using std::runtime_error::runtime_error; //Constructors
-    };
-
-    class ArgParseConversionError : public ArgParseError {
-        using ArgParseError::ArgParseError;
-    };
 
 } //namespace
 

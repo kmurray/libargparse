@@ -25,6 +25,8 @@ namespace argparse {
 
     template<typename Container>
     std::string join(Container container, std::string join_str);
+
+    const char* strdup(const char* str);
 } //namespace
 
 #include "argparse_util.tpp"

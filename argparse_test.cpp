@@ -11,7 +11,7 @@ int main(int argc, const char** argv) {
         bool route;
 
         bool timing_analysis;
-        char slack_definition;
+        const char* slack_definition;
         bool echo_files;
         bool verify_file_digests;
 
@@ -20,7 +20,6 @@ int main(int argc, const char** argv) {
 
         int long1;
         int long2;
-        std::string c;
     };
 
     struct OnOff {
@@ -48,13 +47,11 @@ int main(int argc, const char** argv) {
 
     auto& pos_grp = parser.add_argument_group("positional arguments:");
 
-/*
- *    pos_grp.add_argument(args.architecture_file, "architecture")
- *            .help("FPGA Architecture description file (XML)");
- *
- *    pos_grp.add_argument(args.circuit, "circuit")
- *            .help("Circuit file (name if --blif_file specified)");
- */
+    pos_grp.add_argument(args.architecture_file, "architecture")
+            .help("FPGA Architecture description file (XML)");
+
+    pos_grp.add_argument(args.circuit, "circuit")
+            .help("Circuit file (name if --blif_file specified)");
 
     auto& stage_grp = parser.add_argument_group("stage options:");
 
@@ -87,10 +84,10 @@ int main(int argc, const char** argv) {
             .help("Controls whether timing analysis (and timing driven optimizations) are enabled.")
             .default_value("on") ;
 
-    //gen_grp.add_argument(args.slack_definition, "--slack_definition")
-            //.help("Sets the slack definition used by the classic timing analyyzer")
-            //.default_value('R')
-            //.choices({'R', 'I', 'S', 'G', 'C', 'N'});
+    gen_grp.add_argument(args.slack_definition, "--slack_definition")
+            .help("Sets the slack definition used by the classic timing analyyzer")
+            .default_value("R")
+            .choices({"R", "I", "S", "G", "C", "N"});
 
     gen_grp.add_argument<bool,OnOff>(args.echo_files, "--echo_file")
             .help("Generate echo files of key internal data structures. Useful for debugging VPR, and typically end in .echo")
