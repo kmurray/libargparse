@@ -1,12 +1,19 @@
+#include <cassert>
 #include "argparse_formatter.hpp"
 
 #include "argparse.hpp"
 
 namespace argparse {
+    constexpr size_t OPTION_HELP_SLACK = 3;
 
     /*
      * DefaultFormatter
      */
+    DefaultFormatter::DefaultFormatter(size_t option_name_width, size_t total_width)
+        : option_name_width_(option_name_width)
+        , total_width_(total_width)
+        {}
+
     void DefaultFormatter::set_parser(ArgumentParser* parser) {
         parser_ = parser;
     }
@@ -39,49 +46,88 @@ namespace argparse {
                 ss << "\n";
                 ss << group.description() << "\n";
                 for (const auto& arg : args) {
+                    std::stringstream arg_ss;
+                    arg_ss << std::boolalpha;
+
+                    std::string base_metavar = arg->metavar();
+                    if (!arg->choices().empty()) {
+                        //We allow choices to override the default metavar
+                        std::stringstream choices_ss;
+                        choices_ss << "{";
+                        bool first = true;
+                        for(auto choice : arg->choices()) {
+                            if (!first) {
+                                choices_ss << ", ";
+                            }
+                            choices_ss << choice;
+                            first = false;
+                        }
+                        choices_ss << "}";
+                        base_metavar = choices_ss.str();
+                    }
+
+                    std::string metavar;
+                    if (arg->nargs() == '0' || arg->positional()) {
+                        //empty
+                        metavar = "";
+                    } else if (arg->nargs() == '1') {
+                        metavar = " " + base_metavar;
+                    } else if (arg->nargs() == '?') {
+                        metavar = " [" + base_metavar + "]";
+                    } else if (arg->nargs() == '+') {
+                        metavar = " " + base_metavar + " [" + base_metavar + "]";
+                    } else if (arg->nargs() == '*') {
+                        metavar = " [" + base_metavar + " [" + base_metavar + "...]]";
+                    } else {
+                        assert(false);
+                    }
+
 
                     //name/option
-                    ss << "  ";
+                    arg_ss << "  ";
                     auto short_opt = arg->short_option();
                     auto long_opt = arg->long_option();
                     if (!short_opt.empty()) {
-                        ss << short_opt;
+                        arg_ss << short_opt << metavar;
                     }
                     if (!long_opt.empty()) {
                         if (!short_opt.empty()) {
-                            ss << ", ";
+                            arg_ss << ", ";
                         }
-                        ss << long_opt;
+                        arg_ss << long_opt << metavar;
                     }
 
-                    //Choices
-                    auto choices = arg->choices();
-                    if (!choices.empty()) {
-                        ss << " {";
-                        bool first = true;
-                        for(auto choice : choices) {
-                            if (!first) {
-                                ss << ", ";
-                            }
-                            ss << choice;
-                            first = false;
-                        }
-                        ss << "}";
-                    }
+                    auto str = arg_ss.str();
 
-                    ss << "\t";
+                    size_t pos = str.size();
+
+                    if (pos + OPTION_HELP_SLACK > option_name_width_) {
+                        //If the option name is too long, wrap the help 
+                        //around to a new line
+                        arg_ss << "\n";
+                        pos = 0;
+
+
+
+
+                    }
+                    
+                    //Pad out the help
+                    assert(pos <= option_name_width_);
+                    arg_ss << std::string(option_name_width_ - pos, ' ');
 
                     //Argument help
-                    ss << arg->help();
+                    arg_ss << arg->help();
 
                     //Default
                     if (!arg->default_value().empty()) {
                         if(!arg->help().empty()) {
-                            ss << " ";
+                            arg_ss << " ";
                         }
-                        ss << "(Default: " << arg->default_value() << ")";
+                        arg_ss << "(Default: " << arg->default_value() << ")";
                     }
-                    ss << "\n";
+                    arg_ss << "\n";
+                    ss << arg_ss.str();
                 }
                 if (!group.epilog().empty()) {
                     ss << "\n";
