@@ -207,21 +207,24 @@ namespace argparse {
     }
 
     Argument& Argument::nargs(char nargs_type) {
-        std::array<char,4> valid_nargs = {'1', '?', '*', '+'};
+        std::array<char,5> valid_nargs = {'0', '1', '?', '*', '+'};
 
         auto iter = std::find(valid_nargs.begin(), valid_nargs.end(), nargs_type);
         if (iter == valid_nargs.end()) {
-            std::stringstream ss;
-            ss << "Invalid argument to nargs (must be one of: ";
-            bool first = true;
-            for (char c : valid_nargs) {
-                if (!first) {
-                    ss << ", ";
-                }
-                ss << "'" << c << "'";
-            }
-            ss << ")";
-            throw ArgParseError(ss.str().c_str());
+            throw ArgParseError("Invalid argument to nargs (must be one of: " + join(valid_nargs, ", ") + ")");
+        }
+
+        //Ensure nargs is consistent with the action
+        if (action() == Action::STORE_FALSE && nargs_type != '0') {
+            throw ArgParseError("STORE_FALSE action requires nargs == '0'");
+        } else if (action() == Action::STORE_TRUE && nargs_type != '0') {
+            throw ArgParseError("STORE_TRUE action requires nargs == '0'");
+        } else if (action() == Action::COUNT && nargs_type != '0') {
+            throw ArgParseError("COUNT action requires nargs == '0'");
+        } else if (action() == Action::STORE && nargs_type != '1' && nargs_type != '+') {
+            throw ArgParseError("STORE action requires nargs to be one of '1', '+'");
+        } else if (action() == Action::APPEND && nargs_type != '*' && nargs_type != '+') {
+            throw ArgParseError("APPEND action requires nargs to be one of '*', '+'");
         }
 
         nargs_ = nargs_type;
@@ -240,6 +243,16 @@ namespace argparse {
 
     Argument& Argument::action(Action action_type) {
         action_ = action_type;
+
+        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE || action_ == Action::COUNT) {
+            this->nargs('0');
+        } else if (action_ == Action::STORE) {
+            this->nargs('1');
+        } else {
+            assert (action_ == Action::APPEND);
+            this->nargs('*');
+        }
+
         return *this;
     }
 

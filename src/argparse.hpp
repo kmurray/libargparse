@@ -136,7 +136,7 @@ namespace argparse {
 
             std::string help_;
             std::string metavar_;
-            char nargs_ = '?';
+            char nargs_ = '1';
             std::vector<std::string> choices_;
             Action action_ = Action::STORE;
             bool required_ = false;
