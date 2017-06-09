@@ -75,7 +75,7 @@ int main(int argc, const char** argv) {
     auto& gfx_grp = parser.add_argument_group("graphics options:");
     gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
             .help("Enable or disable interactive graphics")
-            .default_value("on");
+            .default_value("off");
     gfx_grp.add_argument(args.auto_value, "--auto")
             .help("Controls how often VPR pauses for interactive"
                   " graphics (and Proceed must be clicked to continue)."

@@ -1,6 +1,7 @@
 #ifndef ARGPARSE_UTIL_HPP
 #define ARGPARSE_UTIL_HPP
 #include <array>
+#include <vector>
 
 namespace argparse {
 
@@ -27,6 +28,8 @@ namespace argparse {
     std::string join(Container container, std::string join_str);
 
     const char* strdup(const char* str);
+
+    std::vector<std::string> wrap_width(std::string str, size_t width, std::string split_chars=" /");
 } //namespace
 
 #include "argparse_util.tpp"

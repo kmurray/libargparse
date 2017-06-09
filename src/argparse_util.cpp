@@ -49,4 +49,32 @@ namespace argparse {
         std::strcpy(res, str);
         return res;
     }
+
+    std::vector<std::string> wrap_width(std::string str, size_t width, std::string break_chars) {
+        std::vector<std::string> wrapped_lines;
+
+        size_t start = 0;
+        size_t end = 0;
+        size_t last_break = 0;
+        for(end = 0; end < str.size(); ++end) {
+
+            size_t len = end - start;
+
+            if (len > width) {
+                auto wrapped_line = std::string(str, start, last_break - start) + "\n";
+                wrapped_lines.push_back(wrapped_line);
+                start = last_break;
+            }
+
+            char c = str[end];
+            if (break_chars.find(c) != std::string::npos) {
+                last_break = end + 1;
+            }
+        }
+
+        auto last_line = std::string(str, start, end - start);
+        wrapped_lines.push_back(last_line);
+
+        return wrapped_lines;
+    }
 } //namespace

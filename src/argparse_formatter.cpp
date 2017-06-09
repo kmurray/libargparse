@@ -1,10 +1,12 @@
 #include <cassert>
 #include "argparse_formatter.hpp"
+#include "argparse_util.hpp"
 
 #include "argparse.hpp"
 
 namespace argparse {
     constexpr size_t OPTION_HELP_SLACK = 2;
+    std::string INDENT = "  ";
 
     /*
      * DefaultFormatter
@@ -31,7 +33,10 @@ namespace argparse {
 
         std::stringstream ss;
         ss << "\n";
-        ss << parser_->description() << "\n";
+        for(auto& line : wrap_width(parser_->description(), total_width_)) {
+            ss << line;
+        }
+        ss << "\n";
         return ss.str();
     }
 
@@ -84,7 +89,7 @@ namespace argparse {
 
 
                     //name/option
-                    arg_ss << "  ";
+                    arg_ss << INDENT;
                     auto short_opt = arg->short_option();
                     auto long_opt = arg->long_option();
                     if (!short_opt.empty()) {
@@ -112,12 +117,17 @@ namespace argparse {
 
                     }
                     
-                    //Pad out the help
-                    assert(pos <= option_name_width_);
-                    arg_ss << std::string(option_name_width_ - pos, ' ');
-
                     //Argument help
-                    arg_ss << arg->help();
+                    auto help_lines = wrap_width(arg->help(), total_width_ - option_name_width_);
+                    for (auto& line : help_lines) {
+                        //Pad out the help
+                        assert(pos <= option_name_width_);
+                        arg_ss << std::string(option_name_width_ - pos, ' ');
+
+                        //Print a wrapped line
+                        arg_ss << line;
+                        pos = 0;
+                    }
 
                     //Default
                     if (!arg->default_value().empty()) {
@@ -131,7 +141,12 @@ namespace argparse {
                 }
                 if (!group.epilog().empty()) {
                     ss << "\n";
-                    ss << "  " << group.epilog() << "\n";
+
+                    auto epilog_lines = wrap_width(group.epilog(), total_width_ - INDENT.size());
+                    for (auto& line : epilog_lines) {
+                        ss << INDENT << line;
+                    }
+                    ss << "\n";
                 }
             }
         }
@@ -144,7 +159,10 @@ namespace argparse {
 
         std::stringstream ss;
         ss << "\n";
-        ss << parser_->epilog() << "\n";
+        for(auto& line : wrap_width(parser_->epilog(), total_width_)) {
+            ss << line;
+        }
+        ss << "\n";
         return ss.str();
     }
 
