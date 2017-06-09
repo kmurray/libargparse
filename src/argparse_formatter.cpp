@@ -83,6 +83,10 @@ namespace argparse {
                     }
                     ss << "\n";
                 }
+                if (!group.epilog().empty()) {
+                    ss << "\n";
+                    ss << "  " << group.epilog() << "\n";
+                }
             }
         }
 

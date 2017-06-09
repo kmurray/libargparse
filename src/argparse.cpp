@@ -170,7 +170,12 @@ namespace argparse {
         : description_(description_str)
         {}
 
+    ArgumentGroup& ArgumentGroup::epilog(std::string str) {
+        epilog_ = str;
+        return *this;
+    }
     std::string ArgumentGroup::description() const { return description_; }
+    std::string ArgumentGroup::epilog() const { return epilog_; }
     const std::vector<std::shared_ptr<Argument>>& ArgumentGroup::arguments() const { return arguments_; }
 
     /*

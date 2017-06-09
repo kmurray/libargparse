@@ -67,8 +67,11 @@ namespace argparse {
             template<typename T>
             Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
+            ArgumentGroup& epilog(std::string str);
+
         public:
             std::string description() const;
+            std::string epilog() const;
             const std::vector<std::shared_ptr<Argument>>& arguments() const;
         public:
             ArgumentGroup(const ArgumentGroup&) = default;
@@ -80,6 +83,7 @@ namespace argparse {
             ArgumentGroup(std::string description_str=std::string());
         private:
             std::string description_;
+            std::string epilog_;
             std::vector<std::shared_ptr<Argument>> arguments_;
     };
 
