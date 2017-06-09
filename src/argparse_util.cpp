@@ -33,4 +33,13 @@ namespace argparse {
         return upper;
     }
 
+    std::string tolower(std::string str) {
+        std::string lower;
+        for (size_t i = 0; i < str.size(); ++i) {
+            char C = ::tolower(str[i]);
+            lower.push_back(C);
+        }
+        return lower;
+    }
+
 } //namespace

@@ -261,6 +261,11 @@ namespace argparse {
         return *this;
     }
 
+    Argument& Argument::default_value(const std::string& value) {
+        default_value_ = value;
+        return *this;
+    }
+
     Argument& Argument::show_in_usage(bool show) {
         show_in_usage_ = show;
         return *this;
@@ -274,11 +279,40 @@ namespace argparse {
     std::vector<std::string> Argument::choices() const { return choices_; }
     Action Argument::action() const { return action_; }
     bool Argument::required() const { return required_; }
+    std::string Argument::default_value() const { return default_value_; }
     bool Argument::show_in_usage() const { return show_in_usage_; }
 
     bool Argument::positional() const {
         assert(long_option().size() > 1);
         return long_option()[0] != '-';
+    }
+
+    //DefaultConvert specializations for bool
+    // By default std::stringstream doesn't accept "true" or "false"
+    // as boolean values.
+    template<>
+    bool DefaultConverter<bool>::from_str(std::string str) {
+        bool val = false;
+
+        str = tolower(str);
+        if (str == "0" || str == "false") {
+            val = false; 
+        } else if (str == "1" || str == "true") {
+            val = true;
+        } else {
+            throw ArgParseConversionError("Invalid conversion from string");
+        }
+
+        return val;
+    }
+
+    template<>
+    std::string DefaultConverter<bool>::to_str(bool val) {
+        if (val) {
+            return "true";
+        } else {
+            return "false";
+        }
     }
 
 } //namespace

@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <map>
 
@@ -24,16 +25,24 @@ namespace argparse {
         COUNT
     };
 
+    template<typename T>
+    class DefaultConverter {
+        public:
+            T from_str(std::string str);
+            std::string to_str(T val);
+    };
+
+
     class ArgumentParser {
         public:
             ArgumentParser(std::string description_str=std::string(), std::ostream& os=std::cout);
             ArgumentParser& prog(std::string prog);
             ArgumentParser& epilog(std::string prog);
 
-            template<typename T>
+            template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string option);
 
-            template<typename T>
+            template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
             ArgumentGroup& add_argument_group(std::string description_str);
@@ -61,10 +70,10 @@ namespace argparse {
     class ArgumentGroup {
         public:
 
-            template<typename T>
+            template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string option);
 
-            template<typename T>
+            template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
             ArgumentGroup& epilog(std::string str);
@@ -93,11 +102,7 @@ namespace argparse {
         public: //Mutators
             Argument& help(std::string help_str);
 
-            template<typename T>
-            Argument& default_value(const T& default_val);
-
-            template<typename T>
-            Argument& default_value(const std::vector<T>& default_vals);
+            Argument& default_value(const std::string& default_val);
 
             Argument& action(Action action);
             Argument& required(bool is_required);
@@ -115,12 +120,14 @@ namespace argparse {
             std::string short_option() const;
 
             std::string help() const;
-            virtual std::string default_value() const = 0;
+            //virtual std::string default_value() const = 0;
             char nargs() const;
             std::string metavar() const;
             std::vector<std::string> choices() const;
             Action action() const;
             bool required() const;
+
+            std::string default_value() const;
 
             bool show_in_usage() const;
             bool positional() const;
@@ -141,28 +148,26 @@ namespace argparse {
             Action action_ = Action::STORE;
             bool required_ = false;
 
+            std::string default_value_;
+
             bool show_in_usage_ = true;
     };
 
-    template<typename T>
+
+    template<typename T, typename Converter=DefaultConverter<T>>
     class SingleValueArgument : public Argument {
         public: //Constructors
             SingleValueArgument(T& dest, std::string long_opt, std::string short_opt);
         public: //Mutators
-            SingleValueArgument& default_value(T default_val);
-
-            void set_dest_to_value(T value);
-
             void set_dest_to_default() override;
 
-        public: //Accessors
-            std::string default_value() const override;
-
+            void set_dest_to_value(std::string value);
+            void set_dest_to_value(T value);
         private: //Data
             T& dest_;
-            T default_value_;
     };
 
+#ifdef MULTI_VALUE
     template<typename T>
     class MultiValueArgument : public Argument {
         public: //Constructors
@@ -180,9 +185,14 @@ namespace argparse {
             std::vector<T>& dest_;
             std::vector<T> default_values_;
     };
+#endif
 
     class ArgParseError : public std::runtime_error {
         using std::runtime_error::runtime_error; //Constructors
+    };
+
+    class ArgParseConversionError : public ArgParseError {
+        using ArgParseError::ArgParseError;
     };
 
 } //namespace

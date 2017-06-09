@@ -11,6 +11,9 @@ namespace argparse {
     //Converts a string to upper case
     std::string toupper(std::string str);
 
+    //Converts a string to lower case
+    std::string tolower(std::string str);
+
     //Returns true if str represents a named argument starting with
     //'-' or '--' followed by one or more letters
     bool is_argument(std::string str);
