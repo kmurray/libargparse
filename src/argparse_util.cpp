@@ -33,5 +33,4 @@ namespace argparse {
         return upper;
     }
 
-
 } //namespace

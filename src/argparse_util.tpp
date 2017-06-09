@@ -18,4 +18,17 @@ namespace argparse {
         }
     }
 
+    template<typename Container>
+    std::string join(Container container, std::string join_str) {
+        std::stringstream ss;
+
+        bool first = true;
+        for (const auto& val : container) {
+            if (!first) ss << join_str;
+            ss << val;
+            first = false;
+        }
+
+        return ss.str();
+    }
 }

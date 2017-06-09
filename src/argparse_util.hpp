@@ -20,6 +20,8 @@ namespace argparse {
     template<typename T> 
     T as(std::string str);
 
+    template<typename Container>
+    std::string join(Container container, std::string join_str);
 } //namespace
 
 #include "argparse_util.tpp"
