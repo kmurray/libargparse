@@ -4,7 +4,7 @@
 #include "argparse.hpp"
 
 namespace argparse {
-    constexpr size_t OPTION_HELP_SLACK = 3;
+    constexpr size_t OPTION_HELP_SLACK = 2;
 
     /*
      * DefaultFormatter

@@ -25,20 +25,18 @@ int main(int argc, const char** argv) {
 
     struct OnOff {
         bool from_str(std::string str) {
-            if (str == "on") {
-                return true;
-            } else if (str == "off") {
-                return false;
-            } else {
-                throw argparse::ArgParseConversionError("Invalid conversion");
-            }
+            if      (str == "on")  return true;
+            else if (str == "off") return false;
+            throw argparse::ArgParseConversionError("Invalid conversion");
         }
+
         std::string to_str(bool val) {
-            if (val) {
-                return "on";
-            } else {
-                return "off";
-            }
+            if (val) return "on";
+            return "off";
+        }
+
+        std::vector<std::string> default_choices() {
+            return {"on", "off"};
         }
     };
 
@@ -80,17 +78,14 @@ int main(int argc, const char** argv) {
             .action(argparse::Action::STORE_TRUE)
             .default_value("off");
 
-    stage_grp.epilog("Analysis is always run after routing."
-                     " If none of the stage options are specified, all stages are run.");
+    stage_grp.epilog("If none of the stage options are specified, all stages are run."
+                     " Analysis is always run after routing.");
 
     auto& gen_grp = parser.add_argument_group("general options:");
 
     gen_grp.add_argument<bool,OnOff>(args.timing_analysis, "--timing_analysis")
             .help("Controls whether timing analysis (and timing driven optimizations) are enabled.")
-            .default_value("on")
-            //.choices({1, 0});
-            //.choices<bool>({1, 0});
-            ;
+            .default_value("on") ;
 
     //gen_grp.add_argument(args.slack_definition, "--slack_definition")
             //.help("Sets the slack definition used by the classic timing analyyzer")
@@ -100,30 +95,22 @@ int main(int argc, const char** argv) {
     gen_grp.add_argument<bool,OnOff>(args.echo_files, "--echo_file")
             .help("Generate echo files of key internal data structures. Useful for debugging VPR, and typically end in .echo")
             .default_value("off");
-            //.choices({1, 0});
 
     gen_grp.add_argument<bool,OnOff>(args.verify_file_digests, "--verify_file_digests")
             .help("Verify that intermediate files loaded by VPR (e.g. previous packing/placement/routing) are consistent")
             .default_value("on");
-            //.choices({1, 0});
 
     auto& gfx_grp = parser.add_argument_group("graphics options:");
     gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
             .help("Enable or disable interactive graphics")
-            //.default_value(1)
-            //.choices({1, 0})
-            //.default_value("on")
-            //.choices({"on", "off"})
-            .default_value("on")
-            .choices({"on", "off"})
-            ;
+            .default_value("on");
 
-    //gfx_grp.add_argument(args.auto_value, "--auto")
-            //.help("Controls how often VPR pauses for interactive"
-                  //" graphics (and Proceed must be clicked to continue)."
-                  //" Higher values reduce the frequency of pauses")
-            //.default_value(1)
-            //.choices({0, 1, 2});
+    gfx_grp.add_argument(args.auto_value, "--auto")
+            .help("Controls how often VPR pauses for interactive"
+                  " graphics (and Proceed must be clicked to continue)."
+                  " Higher values reduce the frequency of pauses")
+            .default_value("1")
+            .choices({"0", "1", "2"});
 
     //auto& file_grp = parser.add_argument_group("filename options:");
 

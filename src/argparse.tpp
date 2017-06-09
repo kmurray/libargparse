@@ -5,7 +5,16 @@ namespace argparse {
     
     template<typename T, typename Converter>
     std::shared_ptr<Argument> make_argument(T& dest, std::string long_opt, std::string short_opt) {
-        return std::shared_ptr<Argument>(new SingleValueArgument<T, Converter>(dest, long_opt, short_opt));
+        auto ptr = std::make_shared<SingleValueArgument<T, Converter>>(dest, long_opt, short_opt);
+
+        //If the conversion object specifies a non-empty set of choices
+        //use those by default
+        auto default_choices = Converter().default_choices();
+        if (!default_choices.empty()) {
+            ptr->choices(default_choices);
+        }
+
+        return ptr;
     }
 
 #ifdef MULTI_VALUE
@@ -152,6 +161,10 @@ namespace argparse {
             throw ArgParseError("Invalid conversion to string");
         }
         return ss.str();
+    }
+    template<typename T>
+    std::vector<std::string> DefaultConverter<T>::default_choices() {
+        return {};
     }
 
 } //namespace

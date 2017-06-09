@@ -315,4 +315,9 @@ namespace argparse {
         }
     }
 
+    template<>
+    std::vector<std::string> DefaultConverter<bool>::default_choices() {
+        return {"true", "false"};
+    }
+
 } //namespace

@@ -30,6 +30,7 @@ namespace argparse {
         public:
             T from_str(std::string str);
             std::string to_str(T val);
+            std::vector<std::string> default_choices();
     };
 
 
