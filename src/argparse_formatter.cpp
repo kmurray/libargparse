@@ -42,8 +42,8 @@ namespace argparse {
 
                     //name/option
                     ss << "  ";
-                    auto short_opt = arg.short_option();
-                    auto long_opt = arg.long_option();
+                    auto short_opt = arg->short_option();
+                    auto long_opt = arg->long_option();
                     if (!short_opt.empty()) {
                         ss << short_opt;
                     }
@@ -55,7 +55,7 @@ namespace argparse {
                     }
 
                     //Choices
-                    auto choices = arg.choices();
+                    auto choices = arg->choices();
                     if (!choices.empty()) {
                         ss << " {";
                         bool first = true;
@@ -72,11 +72,14 @@ namespace argparse {
                     ss << "\t";
 
                     //Argument help
-                    ss << arg.help();
+                    ss << arg->help();
 
                     //Default
-                    if (!arg.default_value().empty()) {
-                        ss << " (Default: " << arg.default_value() << ")" << "\n";
+                    if (!arg->default_value().empty()) {
+                        if(!arg->help().empty()) {
+                            ss << " ";
+                        }
+                        ss << "(Default: " << arg->default_value() << ")";
                     }
                     ss << "\n";
                 }

@@ -37,43 +37,32 @@ namespace argparse {
     }
 
 
-    Argument& ArgumentParser::add_argument(std::string option) {
-        return add_argument(option, std::string());
-    }
-
-    Argument& ArgumentParser::add_argument(std::string long_opt, std::string short_opt) {
-        return argument_groups_[0].add_argument(long_opt, short_opt);
-    }
-
-    ArgValues ArgumentParser::parse_args(int argc, const char** argv) {
+    void ArgumentParser::parse_args(int argc, const char** argv) {
         std::vector<std::string> arg_strs;
         for (int i = 1; i < argc; ++i) {
             arg_strs.push_back(argv[i]);
         }
-        return parse_args(arg_strs);
+
+        parse_args(arg_strs);
     }
     
-    ArgValues ArgumentParser::parse_args(std::vector<std::string> arg_strs) {
-        ArgValues arg_values;
-        //Set any default values
+    void ArgumentParser::parse_args(std::vector<std::string> arg_strs) {
+        //Reset all the defaults
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
-                if (arg.default_value() != "") {
-                    arg_values.set(arg.dest(), arg.default_value());
-                }
+                arg->set_dest_to_default();
             }
         }
 
-
         //Create a look-up of expected argument strings and positional arguments
-        std::map<std::string,const Argument&> str_to_option_arg;
-        std::list<Argument> positional_args;
+        std::map<std::string,std::shared_ptr<Argument>> str_to_option_arg;
+        std::list<std::shared_ptr<Argument>> positional_args;
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
-                if (arg.positional()) {
+                if (arg->positional()) {
                     positional_args.push_back(arg);
                 } else {
-                    for (const auto& opt : {arg.long_option(), arg.short_option()}) {
+                    for (const auto& opt : {arg->long_option(), arg->short_option()}) {
                         if (opt.empty()) continue;
 
                         auto ret = str_to_option_arg.insert(std::make_pair(opt, arg));
@@ -98,31 +87,29 @@ namespace argparse {
                 auto& arg = iter->second;
 
                 std::string value;
-                if (arg.action() == "store_true") {
+                if (arg->action() == Action::STORE_TRUE) {
                     value = "true";
-                    arg_values.set(arg.dest(), value);
 
-                } else if (arg.action() == "store_false") {
+                } else if (arg->action() == Action::STORE_FALSE) {
                     value = "false";
-                    arg_values.set(arg.dest(), value);
 
                 } else {
-                    assert(arg.action() == "store");
+                    assert(arg->action() == Action::STORE);
 
 
                     size_t max_values_to_read = 0;
                     size_t min_values_to_read = 0;
-                    if (arg.nargs() == '1') {
+                    if (arg->nargs() == '1') {
                         max_values_to_read = 1;
                         min_values_to_read = 1;
-                    } else if (arg.nargs() == '?') {
+                    } else if (arg->nargs() == '?') {
                         max_values_to_read = 1;
                         min_values_to_read = 0;
-                    } else if (arg.nargs() == '*') {
+                    } else if (arg->nargs() == '*') {
                         max_values_to_read = std::numeric_limits<size_t>::max();
                         min_values_to_read = 0;
                     } else {
-                        assert (arg.nargs() == '+');
+                        assert (arg->nargs() == '+');
                         max_values_to_read = std::numeric_limits<size_t>::max();
                         min_values_to_read = 1;
                     }
@@ -134,7 +121,6 @@ namespace argparse {
 
                         if (is_argument(str)) break;
 
-                        values.push_back(str);
                     }
 
                     if (nargs_read < min_values_to_read) {
@@ -143,8 +129,6 @@ namespace argparse {
                         throw ArgParseError(msg.str().c_str());
                     }
                     assert (nargs_read <= max_values_to_read);
-
-                    arg_values.set(arg.dest(), values);
 
                     i += nargs_read; //Skip over the values
                 }
@@ -161,13 +145,9 @@ namespace argparse {
                     positional_args.pop_front();
 
                     auto value = arg_strs[i];
-                    
-                    arg_values.set(arg.dest(), value);
                 }
             }
         }
-
-        return arg_values;
     }
 
     void ArgumentParser::print_help() {
@@ -190,17 +170,8 @@ namespace argparse {
         : description_(description_str)
         {}
 
-    Argument& ArgumentGroup::add_argument(std::string option) {
-        return add_argument(option, std::string());
-    }
-
-    Argument& ArgumentGroup::add_argument(std::string long_opt, std::string short_opt) {
-        arguments_.push_back(Argument(long_opt, short_opt));
-        return arguments_[arguments_.size() - 1];
-    }
-
     std::string ArgumentGroup::description() const { return description_; }
-    std::vector<Argument> ArgumentGroup::arguments() const { return arguments_; }
+    const std::vector<std::shared_ptr<Argument>>& ArgumentGroup::arguments() const { return arguments_; }
 
     /*
      * Argument
@@ -222,8 +193,7 @@ namespace argparse {
         }
 
         //Set defaults
-        dest_ = dashes_name[1];
-        metavar_ = toupper(dest_);
+        metavar_ = toupper(dashes_name[1]);
     }
 
     Argument& Argument::help(std::string help_str) {
@@ -263,20 +233,8 @@ namespace argparse {
         return *this;
     }
 
-    Argument& Argument::dest(std::string dest_str) {
-        dest_ = dest_str;
-        return *this;
-    }
-
-    Argument& Argument::action(std::string action_str) {
-        std::array<const char*,3> valid_actions = {"store_true", "store_false", "store"};
-
-        auto iter = std::find(valid_actions.begin(), valid_actions.end(), action_str);
-        if (iter == valid_actions.end()) {
-            throw ArgParseError("Invalid argument to nargs (must be 'store', 'store_true', or 'store_false')");
-        }
-        
-        action_ = action_str;
+    Argument& Argument::action(Action action_type) {
+        action_ = action_type;
         return *this;
     }
 
@@ -293,50 +251,16 @@ namespace argparse {
     std::string Argument::long_option() const { return long_opt_; }
     std::string Argument::short_option() const { return short_opt_; }
     std::string Argument::help() const { return help_; }
-    std::string Argument::default_value() const { return default_values_[0]; }
     char Argument::nargs() const { return nargs_; }
     std::string Argument::metavar() const { return metavar_; }
     std::vector<std::string> Argument::choices() const { return choices_; }
-    std::string Argument::dest() const { return dest_; }
-    std::string Argument::action() const { return action_; }
+    Action Argument::action() const { return action_; }
     bool Argument::required() const { return required_; }
     bool Argument::show_in_usage() const { return show_in_usage_; }
 
     bool Argument::positional() const {
         assert(long_option().size() > 1);
         return long_option()[0] != '-';
-    }
-
-    /*
-     * ArgValues
-     */
-    bool ArgValues::has_argument(std::string name) const {
-        return count(name) > 0;
-    }
-
-    size_t ArgValues::count(std::string name) const {
-        return values_.count(name);
-    }
-
-    void ArgValues::add(std::string dest, std::string value) {
-        values_.insert(std::make_pair(dest, value));
-    }
-
-    void ArgValues::set(std::string dest, std::string value) {
-        auto range = values_.equal_range(dest);
-        values_.erase(range.first, range.second);
-
-        values_.insert(std::make_pair(dest, value));
-    }
-
-    void ArgValues::set(std::string dest, std::vector<std::string> values) {
-        auto range = values_.equal_range(dest);
-        values_.erase(range.first, range.second);
-
-
-        for (auto& value : values) {
-            values_.insert(std::make_pair(dest, value));
-        }
     }
 
 } //namespace

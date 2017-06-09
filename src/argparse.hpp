@@ -16,19 +16,30 @@ namespace argparse {
     class ArgumentGroup;
     class ArgValues;
 
+    enum class Action {
+        STORE,
+        STORE_TRUE,
+        STORE_FALSE,
+        APPEND,
+        COUNT
+    };
+
     class ArgumentParser {
         public:
             ArgumentParser(std::string description_str=std::string(), std::ostream& os=std::cout);
             ArgumentParser& prog(std::string prog);
             ArgumentParser& epilog(std::string prog);
 
-            Argument& add_argument(std::string option);
-            Argument& add_argument(std::string long_opt, std::string short_opt);
+            template<typename T>
+            Argument& add_argument(T& dest, std::string option);
+
+            template<typename T>
+            Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
             ArgumentGroup& add_argument_group(std::string description_str);
 
-            ArgValues parse_args(int argc, const char** argv);
-            ArgValues parse_args(std::vector<std::string> args);
+            void parse_args(int argc, const char** argv);
+            void parse_args(std::vector<std::string> args);
 
             void print_help();
         public:
@@ -49,13 +60,16 @@ namespace argparse {
 
     class ArgumentGroup {
         public:
-            Argument& add_argument(std::string option);
 
-            Argument& add_argument(std::string long_opt, std::string short_opt);
+            template<typename T>
+            Argument& add_argument(T& dest, std::string option);
+
+            template<typename T>
+            Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
         public:
             std::string description() const;
-            std::vector<Argument> arguments() const;
+            const std::vector<std::shared_ptr<Argument>>& arguments() const;
         public:
             ArgumentGroup(const ArgumentGroup&) = default;
             ArgumentGroup(ArgumentGroup&&) = default;
@@ -66,94 +80,101 @@ namespace argparse {
             ArgumentGroup(std::string description_str=std::string());
         private:
             std::string description_;
-            std::vector<Argument> arguments_;
+            std::vector<std::shared_ptr<Argument>> arguments_;
     };
 
     class Argument {
+        public:
+            Argument(std::string long_opt, std::string short_opt);
         public: //Mutators
             Argument& help(std::string help_str);
 
             template<typename T>
-            Argument& default_value(T default_val);
+            Argument& default_value(const T& default_val);
 
             template<typename T>
-            Argument& default_value(std::vector<T> default_vals);
+            Argument& default_value(const std::vector<T>& default_vals);
 
-            Argument& nargs(char nargs_type);
-            Argument& metavar(std::string metavar_sr);
-            Argument& choices(std::vector<std::string> choice_values);
-            Argument& dest(std::string dest_str);
-            Argument& action(std::string action_str);
+            Argument& action(Action action);
             Argument& required(bool is_required);
+            Argument& metavar(std::string metavar_sr);
+            Argument& nargs(char nargs_type);
+
+            Argument& choices(std::vector<std::string> choice_values);
 
             Argument& show_in_usage(bool show);
+
+            virtual void set_dest_to_default() = 0;
 
         public: //Accessors
             std::string long_option() const;
             std::string short_option() const;
 
             std::string help() const;
-            std::string default_value() const;
+            virtual std::string default_value() const = 0;
             char nargs() const;
             std::string metavar() const;
             std::vector<std::string> choices() const;
-            std::string dest() const;
-            std::string action() const;
+            Action action() const;
             bool required() const;
 
             bool show_in_usage() const;
             bool positional() const;
         public: //Lifetime
+            virtual ~Argument() {}
             Argument(const Argument&) = default;
             Argument(Argument&&) = default;
             Argument& operator=(const Argument&) = delete;
             Argument& operator=(const Argument&&) = delete;
-
-        private:
-            friend class ArgumentParser;
-            friend class ArgumentGroup;
-            Argument(std::string long_opt, std::string short_opt=std::string());
-
-        private:
+        private: //Data
             std::string long_opt_;
             std::string short_opt_;
 
             std::string help_;
-            std::vector<std::string> default_values_;
             std::string metavar_;
             char nargs_ = '?';
             std::vector<std::string> choices_;
-            std::string dest_;
-            std::string action_ = "store";
+            Action action_ = Action::STORE;
             bool required_ = false;
 
             bool show_in_usage_ = true;
     };
 
-    class ArgValues {
-        public:
-            //Returns true if the argument 'name' has a specified value
-            bool has_argument(std::string name) const;
+    template<typename T>
+    class SingleValueArgument : public Argument {
+        public: //Constructors
+            SingleValueArgument(T& dest, std::string long_opt, std::string short_opt);
+        public: //Mutators
+            SingleValueArgument& default_value(T default_val);
 
-            //Returns the number of values associated with 'name'
-            size_t count(std::string name) const;
+            void set_dest_to_value(T value);
 
-            //Returns the single value associated with 'name' 
-            // Throws an exception if there is not precisely one value.
-            template<typename T>
-            T value_as(std::string key) const;
+            void set_dest_to_default() override;
 
-            //Returns the one, or more value associated with 'name' 
-            // Throws an exception if there are no associated values.
-            template<typename T>
-            std::vector<T> values_as(std::string key) const;
+        public: //Accessors
+            std::string default_value() const override;
 
-        public:
-            void set(std::string arg_name, std::string value);
-            void set(std::string arg_name, std::vector<std::string> values);
-            void add(std::string arg_name, std::string value);
-        private:
-            std::multimap<std::string,std::string> values_;
+        private: //Data
+            T& dest_;
+            T default_value_;
+    };
+
+    template<typename T>
+    class MultiValueArgument : public Argument {
+        public: //Constructors
+            MultiValueArgument(std::vector<T>& dest, std::string long_opt, std::string short_opt);
+        public: //Mutators
+            MultiValueArgument& default_value(std::vector<T> default_val);
+
+            void set_dest_to_value(std::vector<T> value);
+
+            void set_dest_to_default() override;
+        public: //Accessors
+            std::string default_value() const override;
+
+        private: //Data
+            std::vector<T>& dest_;
+            std::vector<T> default_values_;
     };
 
     class ArgParseError : public std::runtime_error {
