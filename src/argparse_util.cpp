@@ -15,6 +15,15 @@ namespace argparse {
         return array;
     }
 
+    bool is_argument(std::string str) {
+        if (str.size() == 2 && str[0] == '-' && str[1] != '-') {
+            return true; //Short option
+        } else if (str.size() > 2 && str[0] == '-' && str[1] == '-' && str[2] != '-') {
+            return true; //Long option
+        }
+        return false;
+    }
+
     std::string toupper(std::string str) {
         std::string upper;
         for (size_t i = 0; i < str.size(); ++i) {
@@ -23,5 +32,6 @@ namespace argparse {
         }
         return upper;
     }
+
 
 } //namespace
