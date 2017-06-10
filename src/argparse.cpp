@@ -21,8 +21,12 @@ namespace argparse {
         argument_groups_.push_back(ArgumentGroup("arguments:"));
     }
 
-    ArgumentParser& ArgumentParser::prog(std::string prog_name) {
-        prog_ = prog_name;
+    ArgumentParser& ArgumentParser::prog(std::string prog_name, bool basename_only) {
+        if (basename_only) {
+            prog_ = basename(prog_name);
+        } else {
+            prog_ = prog_name;
+        }
         return *this;
     }
 

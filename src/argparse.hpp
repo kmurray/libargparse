@@ -29,7 +29,7 @@ namespace argparse {
     class ArgumentParser {
         public:
             ArgumentParser(std::string description_str=std::string(), std::ostream& os=std::cout);
-            ArgumentParser& prog(std::string prog);
+            ArgumentParser& prog(std::string prog, bool basename_only=true);
             ArgumentParser& epilog(std::string prog);
 
             template<typename T, typename Converter=DefaultConverter<T>>

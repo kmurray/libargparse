@@ -85,4 +85,15 @@ namespace argparse {
 
         return wrapped_lines;
     }
+
+    std::string basename(std::string filepath) {
+        auto pos = filepath.rfind("/");
+        if (pos == std::string::npos) {
+            pos = 0;
+        } else {
+            pos += 1;
+        }
+
+        return std::string(filepath, pos, filepath.size() - pos);
+    }
 } //namespace
