@@ -70,7 +70,7 @@ int main(int argc, const char** argv) {
     pos_grp.add_argument(args.architecture_file, "architecture")
             .help("FPGA Architecture description file (XML)");
     pos_grp.add_argument(args.circuit, "circuit")
-            .help("Circuit file (name if --blif_file specified)");
+            .help("Circuit file (or circuit name if --blif_file specified)");
 
     auto& gfx_grp = parser.add_argument_group("graphics options:");
     gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
@@ -78,8 +78,8 @@ int main(int argc, const char** argv) {
             .default_value("off");
     gfx_grp.add_argument(args.auto_value, "--auto")
             .help("Controls how often VPR pauses for interactive"
-                  " graphics (and Proceed must be clicked to continue)."
-                  " Higher values reduce the frequency of pauses")
+                  " graphics (requiring Proceed to be clicked)."
+                  " Higher values pause less frequently")
             .default_value("1")
             .choices({"0", "1", "2"});
 
@@ -102,8 +102,8 @@ int main(int argc, const char** argv) {
             .action(argparse::Action::STORE_TRUE)
             .default_value("off");
 
-    stage_grp.epilog("If none of the stage options are specified, all stages are run."
-                     " Analysis is always run after routing.");
+    stage_grp.epilog("If none of the stage options are specified, all stages are run.\n"
+                     "Analysis is always run after routing.");
 
     auto& gen_grp = parser.add_argument_group("general options:");
 

@@ -70,6 +70,14 @@ namespace argparse {
             if (break_chars.find(c) != std::string::npos) {
                 last_break = end + 1;
             }
+
+            //If there are embedded new-lines then take them as forced breaks
+            if (c == '\n') {
+                last_break = end + 1;
+                auto wrapped_line = std::string(str, start, last_break - start);
+                wrapped_lines.push_back(wrapped_line);
+                start = last_break;
+            }
         }
 
         auto last_line = std::string(str, start, end - start);
