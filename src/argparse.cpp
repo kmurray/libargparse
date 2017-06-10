@@ -50,7 +50,9 @@ namespace argparse {
         //Reset all the defaults
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
-                arg->set_dest_to_default();
+                if (arg->default_set()) {
+                    arg->set_dest_to_default();
+                }
             }
         }
 
@@ -263,6 +265,7 @@ namespace argparse {
 
     Argument& Argument::default_value(const std::string& value) {
         default_value_ = value;
+        default_set_ = true;
         return *this;
     }
 
@@ -281,6 +284,7 @@ namespace argparse {
     bool Argument::required() const { return required_; }
     std::string Argument::default_value() const { return default_value_; }
     bool Argument::show_in_usage() const { return show_in_usage_; }
+    bool Argument::default_set() const { return default_set_; }
 
     bool Argument::positional() const {
         assert(long_option().size() > 1);

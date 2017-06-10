@@ -124,6 +124,7 @@ namespace argparse {
 
             bool show_in_usage() const;
             bool positional() const;
+            bool default_set() const;
         public: //Lifetime
             virtual ~Argument() {}
             Argument(const Argument&) = default;
@@ -144,6 +145,7 @@ namespace argparse {
             std::string default_value_;
 
             bool show_in_usage_ = true;
+            bool default_set_ = false;
     };
 
 

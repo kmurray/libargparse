@@ -266,7 +266,7 @@ int main(int argc, const char** argv) {
                   " Values larger than 1.0 cause low slack connections to be treated more critically."
                   " The value increases to --td_place_exp_last during placement.")
             .default_value("1.0");
-    place_timing_grp.add_argument(args.td_place_exp_first, "--td_place_exp_first")
+    place_timing_grp.add_argument(args.td_place_exp_last, "--td_place_exp_last")
             .help("Controls how critical a connection is as a function of slack at the end of placement.")
             .default_value("8.0");
 
