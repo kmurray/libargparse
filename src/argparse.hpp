@@ -26,6 +26,11 @@ namespace argparse {
         COUNT
     };
 
+    enum class ShowIn {
+        USAGE_AND_HELP,
+        HELP_ONLY
+    };
+
     class ArgumentParser {
         public:
             ArgumentParser(std::string description_str=std::string(), std::ostream& os=std::cout);
@@ -105,7 +110,7 @@ namespace argparse {
 
             Argument& choices(std::vector<std::string> choice_values);
 
-            Argument& show_in_usage(bool show);
+            Argument& show_in(ShowIn show);
 
             virtual void set_dest_to_default() = 0;
 
@@ -123,7 +128,7 @@ namespace argparse {
 
             std::string default_value() const;
 
-            bool show_in_usage() const;
+            ShowIn show_in() const;
             bool positional() const;
             bool default_set() const;
         public: //Lifetime
@@ -145,7 +150,7 @@ namespace argparse {
 
             std::string default_value_;
 
-            bool show_in_usage_ = true;
+            ShowIn show_in_ = ShowIn::USAGE_AND_HELP;
             bool default_set_ = false;
     };
 

@@ -273,8 +273,8 @@ namespace argparse {
         return *this;
     }
 
-    Argument& Argument::show_in_usage(bool show) {
-        show_in_usage_ = show;
+    Argument& Argument::show_in(ShowIn show) {
+        show_in_ = show;
         return *this;
     }
 
@@ -286,7 +286,7 @@ namespace argparse {
     std::vector<std::string> Argument::choices() const { return choices_; }
     Action Argument::action() const { return action_; }
     std::string Argument::default_value() const { return default_value_; }
-    bool Argument::show_in_usage() const { return show_in_usage_; }
+    ShowIn Argument::show_in() const { return show_in_; }
     bool Argument::default_set() const { return default_set_; }
 
     bool Argument::required() const {

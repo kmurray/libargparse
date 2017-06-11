@@ -31,9 +31,15 @@ namespace argparse {
         std::stringstream ss;
         ss << USAGE_PREFIX << parser_->prog();
 
+        int num_unshown_options = 0;
         for (const auto& group : parser_->argument_groups()) {
             auto args = group.arguments();
             for(const auto& arg : args) {
+
+                if(arg->show_in() != ShowIn::USAGE_AND_HELP) {
+                    num_unshown_options++;
+                    continue;
+                }
 
                 ss << " ";
 
@@ -46,6 +52,9 @@ namespace argparse {
                     ss << "]";
                 }
             }
+        }
+        if (num_unshown_options > 0) {
+            ss << " [OTHER_OPTIONS ...]";
         }
 
         size_t prefix_len = USAGE_PREFIX.size();
