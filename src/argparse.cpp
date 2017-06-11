@@ -285,11 +285,17 @@ namespace argparse {
     std::string Argument::metavar() const { return metavar_; }
     std::vector<std::string> Argument::choices() const { return choices_; }
     Action Argument::action() const { return action_; }
-    bool Argument::required() const { return required_; }
     std::string Argument::default_value() const { return default_value_; }
     bool Argument::show_in_usage() const { return show_in_usage_; }
     bool Argument::default_set() const { return default_set_; }
 
+    bool Argument::required() const {
+        if(positional()) {
+            //Positional arguments are always required
+            return true;
+        }
+        return required_;
+    }
     bool Argument::positional() const {
         assert(long_option().size() > 1);
         return long_option()[0] != '-';

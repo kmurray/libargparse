@@ -101,6 +101,7 @@ namespace argparse {
             Argument& required(bool is_required);
             Argument& metavar(std::string metavar_sr);
             Argument& nargs(char nargs_type);
+            bool required(bool required_value) const;
 
             Argument& choices(std::vector<std::string> choice_values);
 

@@ -50,7 +50,7 @@ namespace argparse {
         return res;
     }
 
-    std::vector<std::string> wrap_width(std::string str, size_t width, std::string break_chars) {
+    std::vector<std::string> wrap_width(std::string str, size_t width, std::vector<std::string> break_strs) {
         std::vector<std::string> wrapped_lines;
 
         size_t start = 0;
@@ -66,12 +66,16 @@ namespace argparse {
                 start = last_break;
             }
 
-            char c = str[end];
-            if (break_chars.find(c) != std::string::npos) {
-                last_break = end + 1;
+            //Find the next break
+            for (const auto& brk_str : break_strs) {
+                auto pos = str.find(brk_str, end); //FIXME: this is inefficient
+                if (pos == end) {
+                    last_break = end + 1;
+                }
             }
 
             //If there are embedded new-lines then take them as forced breaks
+            char c = str[end];
             if (c == '\n') {
                 last_break = end + 1;
                 auto wrapped_line = std::string(str, start, last_break - start);

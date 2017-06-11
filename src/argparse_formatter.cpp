@@ -7,7 +7,11 @@
 namespace argparse {
     constexpr size_t OPTION_HELP_SLACK = 2;
     std::string INDENT = "  ";
+    std::string USAGE_PREFIX = "usage: ";
 
+    std::string long_option_str(const Argument& argument);
+    std::string short_option_str(const Argument& argument);
+    std::string determine_metavar(const Argument& argument);
     /*
      * DefaultFormatter
      */
@@ -23,9 +27,42 @@ namespace argparse {
     std::string DefaultFormatter::format_usage() const {
         if (!parser_) throw ArgParseError("parser not initialized in help formatter");
 
+
         std::stringstream ss;
-        ss << "usage: " << parser_->prog() << " [options]" << "\n";
-        return ss.str();
+        ss << USAGE_PREFIX << parser_->prog();
+
+        for (const auto& group : parser_->argument_groups()) {
+            auto args = group.arguments();
+            for(const auto& arg : args) {
+
+                ss << " ";
+
+                if (!arg->required()) {
+                    ss << "[";
+                }
+                ss << long_option_str(*arg);
+
+                if (!arg->required()) {
+                    ss << "]";
+                }
+            }
+        }
+
+        size_t prefix_len = USAGE_PREFIX.size();
+
+        std::stringstream wrapped_ss;
+        bool first = true;
+        for(const auto& line : wrap_width(ss.str(), total_width_ - prefix_len, {" [", " -"})) {
+            if(!first) {
+                //pass
+                wrapped_ss << std::string(prefix_len, ' ');
+            }
+            wrapped_ss << line;
+            first = false;
+        }
+        wrapped_ss << "\n";
+
+        return wrapped_ss.str();
     }
 
     std::string DefaultFormatter::format_description() const {
@@ -54,67 +91,29 @@ namespace argparse {
                     std::stringstream arg_ss;
                     arg_ss << std::boolalpha;
 
-                    std::string base_metavar = arg->metavar();
-                    if (!arg->choices().empty()) {
-                        //We allow choices to override the default metavar
-                        std::stringstream choices_ss;
-                        choices_ss << "{";
-                        bool first = true;
-                        for(auto choice : arg->choices()) {
-                            if (!first) {
-                                choices_ss << ", ";
-                            }
-                            choices_ss << choice;
-                            first = false;
-                        }
-                        choices_ss << "}";
-                        base_metavar = choices_ss.str();
-                    }
 
-                    std::string metavar;
-                    if (arg->nargs() == '0' || arg->positional()) {
-                        //empty
-                        metavar = "";
-                    } else if (arg->nargs() == '1') {
-                        metavar = " " + base_metavar;
-                    } else if (arg->nargs() == '?') {
-                        metavar = " [" + base_metavar + "]";
-                    } else if (arg->nargs() == '+') {
-                        metavar = " " + base_metavar + " [" + base_metavar + "]";
-                    } else if (arg->nargs() == '*') {
-                        metavar = " [" + base_metavar + " [" + base_metavar + "...]]";
-                    } else {
-                        assert(false);
-                    }
-
+                    auto long_opt_descr = long_option_str(*arg);
+                    auto short_opt_descr = short_option_str(*arg);
 
                     //name/option
                     arg_ss << INDENT;
-                    auto short_opt = arg->short_option();
-                    auto long_opt = arg->long_option();
-                    if (!short_opt.empty()) {
-                        arg_ss << short_opt << metavar;
+                    if (!short_opt_descr.empty()) {
+                        arg_ss << short_opt_descr;
                     }
-                    if (!long_opt.empty()) {
-                        if (!short_opt.empty()) {
+                    if (!long_opt_descr.empty()) {
+                        if (!short_opt_descr.empty()) {
                             arg_ss << ", ";
                         }
-                        arg_ss << long_opt << metavar;
+                        arg_ss << long_opt_descr;
                     }
 
-                    auto str = arg_ss.str();
-
-                    size_t pos = str.size();
+                    size_t pos = arg_ss.str().size();
 
                     if (pos + OPTION_HELP_SLACK > option_name_width_) {
                         //If the option name is too long, wrap the help 
                         //around to a new line
                         arg_ss << "\n";
                         pos = 0;
-
-
-
-
                     }
                     
                     //Argument help
@@ -164,6 +163,66 @@ namespace argparse {
         }
         ss << "\n";
         return ss.str();
+    }
+
+    /*
+     * Utilities
+     */
+    std::string long_option_str(const Argument& argument) {
+        auto long_opt = argument.long_option();
+        if(argument.nargs() != '0' && !argument.positional()) {
+            long_opt += + " " + determine_metavar(argument);
+        }
+        return long_opt;
+    }
+
+    std::string short_option_str(const Argument& argument) {
+        auto short_opt = argument.short_option();
+        if(!short_opt.empty()) {
+            if(argument.nargs() != '0' && !argument.positional()) {
+                short_opt += " " + determine_metavar(argument);
+            }
+            return short_opt;
+        } else {
+            return "";
+        }
+    }
+
+    std::string determine_metavar(const Argument& arg) {
+
+        std::string base_metavar = arg.metavar();
+        if (!arg.choices().empty()) {
+            //We allow choices to override the default metavar
+            std::stringstream choices_ss;
+            choices_ss << "{";
+            bool first = true;
+            for(auto choice : arg.choices()) {
+                if (!first) {
+                    choices_ss << ", ";
+                }
+                choices_ss << choice;
+                first = false;
+            }
+            choices_ss << "}";
+            base_metavar = choices_ss.str();
+        }
+
+        std::string metavar;
+        if (arg.nargs() == '0' || arg.positional()) {
+            //empty
+            metavar = "";
+        } else if (arg.nargs() == '1') {
+            metavar = base_metavar;
+        } else if (arg.nargs() == '?') {
+            metavar = "[" + base_metavar + "]";
+        } else if (arg.nargs() == '+') {
+            metavar = base_metavar + " [" + base_metavar + "]";
+        } else if (arg.nargs() == '*') {
+            metavar = "[" + base_metavar + " [" + base_metavar + "...]]";
+        } else {
+            assert(false);
+        }
+        return metavar;
     }
 
 } //namespace

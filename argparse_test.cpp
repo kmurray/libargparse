@@ -114,17 +114,6 @@ int main(int argc, const char** argv) {
     pos_grp.add_argument(args.circuit, "circuit")
             .help("Circuit file (or circuit name if --blif_file specified)");
 
-    auto& gfx_grp = parser.add_argument_group("graphics options:");
-    gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
-            .help("Enable or disable interactive graphics")
-            .default_value("off");
-    gfx_grp.add_argument(args.auto_value, "--auto")
-            .help("Controls how often VPR pauses for interactive"
-                  " graphics (requiring Proceed to be clicked)."
-                  " Higher values pause less frequently")
-            .default_value("1")
-            .choices({"0", "1", "2"});
-
     auto& stage_grp = parser.add_argument_group("stage options:");
 
     stage_grp.add_argument<bool,OnOff>(args.pack, "--pack")
@@ -147,6 +136,17 @@ int main(int argc, const char** argv) {
     stage_grp.epilog("If none of the stage options are specified, all stages are run.\n"
                      "Analysis is always run after routing.");
 
+    auto& gfx_grp = parser.add_argument_group("graphics options:");
+    gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
+            .help("Enable or disable interactive graphics")
+            .default_value("off");
+    gfx_grp.add_argument(args.auto_value, "--auto")
+            .help("Controls how often VPR pauses for interactive"
+                  " graphics (requiring Proceed to be clicked)."
+                  " Higher values pause less frequently")
+            .default_value("1")
+            .choices({"0", "1", "2"});
+
     auto& gen_grp = parser.add_argument_group("general options:");
 
     gen_grp.add_argument<bool,OnOff>(args.timing_analysis, "--timing_analysis")
@@ -160,7 +160,7 @@ int main(int argc, const char** argv) {
             .help("Generate echo files of key internal data structures. Useful for debugging VPR, and typically end in .echo")
             .default_value("off");
     gen_grp.add_argument<bool,OnOff>(args.verify_file_digests, "--verify_file_digests")
-            .help("Verify that intermediate files loaded by VPR (e.g. previous packing/placement/routing) are consistent")
+            .help("Verify that files loaded by VPR (e.g. architecture, netlist, previous packing/placement/routing) are consistent")
             .default_value("on");
 
     auto& file_grp = parser.add_argument_group("filename options:");
@@ -258,7 +258,7 @@ int main(int argc, const char** argv) {
             .help("Controls how many temperature updates occur between timing analysis during placement")
             .default_value("1");
     place_timing_grp.add_argument(args.inner_loop_recompute_divider, "--inner_loop_recompute_divider")
-            .help("Controls how many timing analysies are perform in a single temperature during placement")
+            .help("Controls how many timing analysies are perform per temperature during placement")
             .default_value("0");
     place_timing_grp.add_argument(args.td_place_exp_first, "--td_place_exp_first")
             .help("Controls how critical a connection is as a function of slack at the start of placement."
