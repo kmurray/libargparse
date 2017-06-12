@@ -270,6 +270,7 @@ namespace argparse {
             }
 
             bool check_action() override {
+                //Sanity check that we aren't processing a boolean action with a non-boolean destination
                 if (action() == Action::STORE_TRUE) {
                     std::stringstream msg;
                     msg << "Non-boolean destination can not have STORE_TRUE action (" << long_option() << ")";
@@ -314,30 +315,13 @@ namespace argparse {
                 set_dest_to_value(false);
             }
 
-            bool check_action() override { return true; }
+            bool check_action() override { 
+                //Any supported action is valid on a boolean destination
+                return true; 
+            }
         private: //Data
             bool& dest_;
     };
-
-#ifdef MULTI_VALUE
-    template<typename T>
-    class MultiValueArgument : public Argument {
-        public: //Constructors
-            MultiValueArgument(std::vector<T>& dest, std::string long_opt, std::string short_opt);
-        public: //Mutators
-            MultiValueArgument& default_value(std::vector<T> default_val);
-
-            void set_dest_to_value(std::vector<T> value);
-
-            void set_dest_to_default() override;
-        public: //Accessors
-            std::string default_value() const override;
-
-        private: //Data
-            std::vector<T>& dest_;
-            std::vector<T> default_values_;
-    };
-#endif
 
 } //namespace
 

@@ -17,13 +17,6 @@ namespace argparse {
         return ptr;
     }
 
-#ifdef MULTI_VALUE
-    template<typename T>
-    std::shared_ptr<Argument> make_argument(std::vector<T>& dest, std::string long_opt, std::string short_opt) {
-        return std::shared_ptr<Argument>(new MultiValueArgument<std::vector<T>>(dest, long_opt, short_opt));
-    }
-#endif
-
     /*
      * ArgumentParser
      */
@@ -54,61 +47,5 @@ namespace argparse {
         arg->group_name(name()); //Tag the option with the group
         return *arg;
     }
-
-    /*
-     * Argument
-     */
-
-
-#ifdef MULTI_VALUE
-    /*
-     * MultiValueArgument
-     */
-    template<typename T>
-    MultiValueArgument<T>::MultiValueArgument(std::vector<T>& dest, std::string long_opt, std::string short_opt)
-        : Argument(long_opt, short_opt)
-        , dest_(dest)
-        {}
-
-    template<typename T>
-    MultiValueArgument<T>& MultiValueArgument<T>::default_value(std::vector<T> default_vals) {
-        default_values_ = default_vals;
-        set_dest_to_value(default_vals);
-        return *this;
-    }
-
-    template<typename T>
-    void MultiValueArgument<T>::set_dest_to_value(std::vector<T> val) {
-        dest_ = val;
-    }
-
-    template<typename T>
-    void MultiValueArgument<T>::set_dest_to_default() {
-        set_dest_to_value(default_values_);
-    }
-
-    template<typename T>
-    std::string MultiValueArgument<T>::default_value() const {
-        std::stringstream ss;
-        ss << "[";
-
-        bool first = true;
-        for (T& val : default_values_) {
-            if (!first) {
-                ss << ", ";
-            }
-            ss << val;
-            first = false;
-        }
-        ss << "]";
-
-        if (!ss.good()) {
-            throw ArgParseError("Failed to convert default values to string");
-        }
-
-        return ss.str();
-    }
-
-#endif
 
 } //namespace
