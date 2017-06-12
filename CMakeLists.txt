@@ -21,10 +21,12 @@ add_library(libargparse STATIC
 set_target_properties(libargparse PROPERTIES PREFIX "") #Avoid extra 'lib' prefix
 target_include_directories(libargparse PUBLIC ${LIB_INCLUDE_DIRS})
 
-#Create the test executable
-add_executable(argparse_test argparse_test.cpp)
-target_link_libraries(argparse_test libargparse)
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    #Create the test executable
+    add_executable(argparse_test argparse_test.cpp)
+    target_link_libraries(argparse_test libargparse)
 
-#Create the example executable
-add_executable(argparse_example argparse_example.cpp)
-target_link_libraries(argparse_example libargparse)
+    #Create the example executable
+    add_executable(argparse_example argparse_example.cpp)
+    target_link_libraries(argparse_example libargparse)
+endif()
