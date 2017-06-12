@@ -45,8 +45,10 @@ namespace argparse {
 
             ArgumentGroup& add_argument_group(std::string description_str);
 
-            void parse_args(int argc, const char** argv);
-            void parse_args(std::vector<std::string> args);
+            //Parses the specified command-line arguments and sets the appropriat argument values
+            // Returns a map of specified arguments grouped by argument group
+            std::vector<std::shared_ptr<Argument>> parse_args(int argc, const char** argv);
+            std::vector<std::shared_ptr<Argument>> parse_args(std::vector<std::string> args);
 
             void print_help();
         public:
@@ -77,7 +79,7 @@ namespace argparse {
             ArgumentGroup& epilog(std::string str);
 
         public:
-            std::string description() const;
+            std::string name() const;
             std::string epilog() const;
             const std::vector<std::shared_ptr<Argument>>& arguments() const;
         public:
@@ -87,9 +89,9 @@ namespace argparse {
             ArgumentGroup& operator=(const ArgumentGroup&&) = delete;
         private:
             friend class ArgumentParser;
-            ArgumentGroup(std::string description_str=std::string());
+            ArgumentGroup(std::string name_str=std::string());
         private:
-            std::string description_;
+            std::string name_;
             std::string epilog_;
             std::vector<std::shared_ptr<Argument>> arguments_;
     };
@@ -106,10 +108,10 @@ namespace argparse {
             Argument& required(bool is_required);
             Argument& metavar(std::string metavar_sr);
             Argument& nargs(char nargs_type);
-            bool required(bool required_value) const;
 
             Argument& choices(std::vector<std::string> choice_values);
 
+            Argument& group_name(std::string grp);
             Argument& show_in(ShowIn show);
 
             virtual void set_dest_to_default() = 0;
@@ -129,6 +131,7 @@ namespace argparse {
 
             std::string default_value() const;
 
+            std::string group_name() const;
             ShowIn show_in() const;
             bool positional() const;
             bool default_set() const;
@@ -151,6 +154,7 @@ namespace argparse {
 
             std::string default_value_;
 
+            std::string group_name_;
             ShowIn show_in_ = ShowIn::USAGE_AND_HELP;
             bool default_set_ = false;
     };

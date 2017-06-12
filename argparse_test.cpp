@@ -111,15 +111,13 @@ int main(int argc, const char** argv) {
     parser.prog(argv[0]);
     parser.epilog("This is the epilog");
 
-    auto& pos_grp = parser.add_argument_group("positional arguments:");
-
+    auto& pos_grp = parser.add_argument_group("positional arguments");
     pos_grp.add_argument(args.architecture_file, "architecture")
             .help("FPGA Architecture description file (XML)");
     pos_grp.add_argument(args.circuit, "circuit")
             .help("Circuit file (or circuit name if --blif_file specified)");
 
-    auto& stage_grp = parser.add_argument_group("stage options:");
-
+    auto& stage_grp = parser.add_argument_group("stage options");
     stage_grp.add_argument<bool,OnOff>(args.pack, "--pack")
             .help("Run packing")
             .action(argparse::Action::STORE_TRUE)
@@ -140,7 +138,7 @@ int main(int argc, const char** argv) {
     stage_grp.epilog("If none of the stage options are specified, all stages are run.\n"
                      "Analysis is always run after routing.");
 
-    auto& gfx_grp = parser.add_argument_group("graphics options:");
+    auto& gfx_grp = parser.add_argument_group("graphics options");
     gfx_grp.add_argument<bool,OnOff>(args.disp, "--disp")
             .help("Enable or disable interactive graphics")
             .default_value("off");
@@ -152,8 +150,7 @@ int main(int argc, const char** argv) {
             .choices({"0", "1", "2"})
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& gen_grp = parser.add_argument_group("general options:");
-
+    auto& gen_grp = parser.add_argument_group("general options");
     gen_grp.add_argument<bool,OnOff>(args.timing_analysis, "--timing_analysis")
             .help("Controls whether timing analysis (and timing driven optimizations) are enabled.")
             .default_value("on") ;
@@ -173,8 +170,7 @@ int main(int argc, const char** argv) {
             .default_value("on")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& file_grp = parser.add_argument_group("filename options:");
-
+    auto& file_grp = parser.add_argument_group("filename options");
     file_grp.add_argument(args.blif_file, "--blif_file")
             .help("Path to technology mapped circuit in BLIF format")
             .show_in(argparse::ShowIn::HELP_ONLY);
@@ -195,7 +191,7 @@ int main(int argc, const char** argv) {
             .show_in(argparse::ShowIn::HELP_ONLY);
 
 
-    auto& netlist_grp = parser.add_argument_group("netlist options:");
+    auto& netlist_grp = parser.add_argument_group("netlist options");
     netlist_grp.add_argument<bool,OnOff>(args.absorb_buffer_luts, "--absorb_buffer_luts")
             .help("Controls whether LUTS programmed as buffers are absorbed by downstream logic")
             .default_value("on")
@@ -217,7 +213,7 @@ int main(int argc, const char** argv) {
             .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& pack_grp = parser.add_argument_group("packing options:");
+    auto& pack_grp = parser.add_argument_group("packing options");
     pack_grp.add_argument<bool,OnOff>(args.connection_driven_clustering, "--connection_driven_clustering")
             .help("Controls whether or not packing prioritizes the absorption of nets with fewer"
                   " connections into a complex logic block over nets with more connections")
@@ -249,7 +245,7 @@ int main(int argc, const char** argv) {
             .choices({"blend", "timing", "max_inputs"})
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& place_grp = parser.add_argument_group("placement options:");
+    auto& place_grp = parser.add_argument_group("placement options");
     place_grp.add_argument(args.seed, "--seed")
             .help("Placement random number generator seed")
             .default_value("1")
@@ -292,7 +288,7 @@ int main(int argc, const char** argv) {
             .default_value("100")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& place_timing_grp = parser.add_argument_group("timing-driven placement options:");
+    auto& place_timing_grp = parser.add_argument_group("timing-driven placement options");
     place_timing_grp.add_argument(args.timing_tradeoff, "--timing_tradeoff")
             .help("Trade-off control between delay and wirelength during placement."
                   " 0.0 focuses completely on wirelength, 1.0 completely on timing")
@@ -318,7 +314,7 @@ int main(int argc, const char** argv) {
             .default_value("8.0")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& route_grp = parser.add_argument_group("routing options:");
+    auto& route_grp = parser.add_argument_group("routing options");
     route_grp.add_argument(args.max_router_iterations, "--max_route_iterations")
             .help("Maximum number of Pathfinder-based routing iterations before the circuit is"
                   " declared unroutable at a given channel width")
@@ -383,7 +379,7 @@ int main(int argc, const char** argv) {
             .default_value("64")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& route_timing_grp = parser.add_argument_group("timing-driven routing options:");
+    auto& route_timing_grp = parser.add_argument_group("timing-driven routing options");
     route_timing_grp.add_argument(args.astar_fac, "--astar_fac")
             .help("How aggressive the directed search used by the timing-driven router is."
                   " Values between 1 and 2 are resonable; higher values trade some quality for reduced run-time")
@@ -411,7 +407,7 @@ int main(int argc, const char** argv) {
             .choices({"safe", "aggressive", "off"})
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& analysis_grp = parser.add_argument_group("analysis options:");
+    auto& analysis_grp = parser.add_argument_group("analysis options");
 
     analysis_grp.add_argument<bool,OnOff>(args.full_stats, "--full_stats")
             .help("Print extra statistics about the circuit and it's routing (useful for wireability analysis)")
@@ -424,7 +420,7 @@ int main(int argc, const char** argv) {
             .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    auto& power_grp = parser.add_argument_group("power analysis options:");
+    auto& power_grp = parser.add_argument_group("power analysis options");
     power_grp.add_argument<bool,OnOff>(args.power, "--power")
             .help("Enable power estimation")
             .action(argparse::Action::STORE_TRUE)
@@ -438,6 +434,16 @@ int main(int argc, const char** argv) {
             .show_in(argparse::ShowIn::HELP_ONLY);
 
     parser.print_help();
+
+    //auto specified_args = parser.parse_args(argc, argv);
+    //for(auto& arg : specified_args) {
+        //std::cout << "Group: " << arg->group_name() << " Specified argument: " << arg->long_option();
+        //auto short_opt = arg->short_option();
+        //if (!short_opt.empty()) {
+            //std::cout << "/" << short_opt;
+        //}
+        //std::cout << "\n";
+    //}
 
     std::vector<std::vector<std::string>> pass_cases = {
         {"my_arch.xml", "my_circuit.blif"},

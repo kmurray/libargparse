@@ -95,7 +95,7 @@ namespace argparse {
             auto args = group.arguments();
             if (args.size() > 0) {
                 ss << "\n";
-                ss << group.description() << "\n";
+                ss << group.name() << ":" << "\n";
                 for (const auto& arg : args) {
                     std::stringstream arg_ss;
                     arg_ss << std::boolalpha;

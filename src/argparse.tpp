@@ -49,7 +49,10 @@ namespace argparse {
     template<typename T, typename Converter>
     Argument& ArgumentGroup::add_argument(T& dest, std::string long_opt, std::string short_opt) {
         arguments_.push_back(make_argument<T,Converter>(dest, long_opt, short_opt));
-        return *arguments_[arguments_.size() - 1];
+
+        auto& arg = arguments_[arguments_.size() - 1];
+        arg->group_name(name()); //Tag the option with the group
+        return *arg;
     }
 
     /*

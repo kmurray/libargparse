@@ -41,16 +41,16 @@ namespace argparse {
     }
 
 
-    void ArgumentParser::parse_args(int argc, const char** argv) {
+    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args(int argc, const char** argv) {
         std::vector<std::string> arg_strs;
         for (int i = 1; i < argc; ++i) {
             arg_strs.push_back(argv[i]);
         }
 
-        parse_args(arg_strs);
+        return parse_args(arg_strs);
     }
     
-    void ArgumentParser::parse_args(std::vector<std::string> arg_strs) {
+    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args(std::vector<std::string> arg_strs) {
         //Reset all the defaults
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
@@ -77,13 +77,14 @@ namespace argparse {
                             //Option string already specified
                             std::stringstream ss;
                             ss << "Option string '" << opt << "' maps to multiple options";
-                            throw ArgParseError(ss.str().c_str());
+                            throw ArgParseError(ss.str());
                         }
                     }
                 }
             }
         }
 
+        std::vector<std::shared_ptr<Argument>> specified_arguments;
 
         //Process the arguments
         for (size_t i = 0; i < arg_strs.size(); i++) {
@@ -91,6 +92,8 @@ namespace argparse {
             if (iter != str_to_option_arg.end()) {
                 //Start of an argument
                 auto& arg = iter->second;
+
+                specified_arguments.push_back(arg);
 
                 std::string value;
                 if (arg->action() == Action::STORE_TRUE) {
@@ -170,6 +173,7 @@ namespace argparse {
                     positional_args.pop_front();
 
                     auto value = arg_strs[i];
+                    specified_arguments.push_back(arg);
                 }
             }
         }
@@ -180,6 +184,8 @@ namespace argparse {
             ss << "Missing required positional argument: " << remaining_positional->long_option();
             throw ArgParseError(ss.str());
         }
+
+        return specified_arguments;
     }
 
     void ArgumentParser::print_help() {
@@ -198,15 +204,15 @@ namespace argparse {
     /*
      * ArgumentGroup
      */
-    ArgumentGroup::ArgumentGroup(std::string description_str)
-        : description_(description_str)
+    ArgumentGroup::ArgumentGroup(std::string name_str)
+        : name_(name_str)
         {}
 
     ArgumentGroup& ArgumentGroup::epilog(std::string str) {
         epilog_ = str;
         return *this;
     }
-    std::string ArgumentGroup::description() const { return description_; }
+    std::string ArgumentGroup::name() const { return name_; }
     std::string ArgumentGroup::epilog() const { return epilog_; }
     const std::vector<std::shared_ptr<Argument>>& ArgumentGroup::arguments() const { return arguments_; }
 
@@ -299,6 +305,11 @@ namespace argparse {
         return *this;
     }
 
+    Argument& Argument::group_name(std::string grp) {
+        group_name_ = grp;
+        return *this;
+    }
+
     Argument& Argument::show_in(ShowIn show) {
         show_in_ = show;
         return *this;
@@ -312,6 +323,7 @@ namespace argparse {
     std::vector<std::string> Argument::choices() const { return choices_; }
     Action Argument::action() const { return action_; }
     std::string Argument::default_value() const { return default_value_; }
+    std::string Argument::group_name() const { return group_name_; }
     ShowIn Argument::show_in() const { return show_in_; }
     bool Argument::default_set() const { return default_set_; }
 
