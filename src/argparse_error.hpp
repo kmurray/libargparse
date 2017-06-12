@@ -11,5 +11,9 @@ namespace argparse {
         using ArgParseError::ArgParseError;
     };
 
+    class ArgParseHelp {
+
+    };
+
 }
 #endif

@@ -22,6 +22,7 @@ namespace argparse {
         STORE,
         STORE_TRUE,
         STORE_FALSE,
+        HELP
     };
 
     enum class ShowIn {
@@ -31,30 +32,57 @@ namespace argparse {
 
     class ArgumentParser {
         public:
-            ArgumentParser(std::string description_str=std::string(), std::ostream& os=std::cout);
+            //Initializes an argument parser
+            ArgumentParser(std::string prog_name, std::string description_str=std::string(), std::ostream& os=std::cout);
+
+            //Overrides the program name
             ArgumentParser& prog(std::string prog, bool basename_only=true);
+
+            //Specifies the epilog text at the bottom of the help description
             ArgumentParser& epilog(std::string prog);
 
+            //Adds an argument or option with a single name
             template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string option);
 
+            //Adds an option with a long and short option name
             template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
+            //Adds a group to collect related arguments
             ArgumentGroup& add_argument_group(std::string description_str);
 
-            //Parses the specified command-line arguments and sets the appropriat argument values
-            // Returns a map of specified arguments grouped by argument group
-            std::vector<std::shared_ptr<Argument>> parse_args(int argc, const char** argv);
-            std::vector<std::shared_ptr<Argument>> parse_args(std::vector<std::string> args);
+            //Like parse_arg_throw(), but catches exceptions and exits the program
+            std::vector<std::shared_ptr<Argument>> parse_args(int argc, const char** argv, int error_exit_code=1, int help_exit_code=0);
 
+            //Parses the specified command-line arguments and sets the appropriat argument values
+            // Returns a vector of Arguments which were specified.
+            //If an error occurs throws ArgParseError
+            //If an help is requested occurs throws ArgParseHelp
+            std::vector<std::shared_ptr<Argument>> parse_args_throw(int argc, const char** argv);
+            std::vector<std::shared_ptr<Argument>> parse_args_throw(std::vector<std::string> args);
+
+
+            //Prints the basic usage
+            void print_usage();
+
+            //Prints the usage and full help description for each option
             void print_help();
         public:
+            //Returns the program name
             std::string prog() const;
+
+            //Returns the program description (after usage, but before option descriptions)
             std::string description() const;
+
+            //Returns the epilog (end of help)
             std::string epilog() const;
+
+            //Returns all the argument groups in this parser
             std::vector<ArgumentGroup> argument_groups() const;
 
+        private:
+            void add_help_option_if_unspecified();
         private:
             std::string prog_;
             std::string description_;
@@ -63,22 +91,31 @@ namespace argparse {
 
             Formatter* formatter_;
             std::ostream& os_;
+            bool show_help_dummy_; //Dummy variable used as destination for automatically generated help option
     };
 
     class ArgumentGroup {
         public:
 
+            //Adds an argument or option with a single name
             template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string option);
 
+            //Adds an option with a long and short option name
             template<typename T, typename Converter=DefaultConverter<T>>
             Argument& add_argument(T& dest, std::string long_opt, std::string short_opt);
 
+            //Adds an epilog to the group
             ArgumentGroup& epilog(std::string str);
 
         public:
+            //Returns the name of the group
             std::string name() const;
+
+            //Returns the epilog
             std::string epilog() const;
+
+            //Returns the arguments within the group
             const std::vector<std::shared_ptr<Argument>>& arguments() const;
         public:
             ArgumentGroup(const ArgumentGroup&) = default;
@@ -98,40 +135,80 @@ namespace argparse {
         public:
             Argument(std::string long_opt, std::string short_opt);
         public: //Mutators
+            //Sets the hlep text
             Argument& help(std::string help_str);
 
+            //Sets the defuault value
             Argument& default_value(const std::string& default_val);
 
+            //Sets the action
             Argument& action(Action action);
+
+            //Sets whether this argument is required
             Argument& required(bool is_required);
+
+            //Sets the associated metavar (if not specified, inferred from argument name, or choices)
             Argument& metavar(std::string metavar_sr);
+
+            //Sets the expected number of arguments
             Argument& nargs(char nargs_type);
 
+            //Sets the valid choices for this option's value
             Argument& choices(std::vector<std::string> choice_values);
 
+            //Sets the group name this argument is associated with
             Argument& group_name(std::string grp);
+
+            //Sets where this option appears in the help
             Argument& show_in(ShowIn show);
 
+            //Sets the target value to the specified default
             virtual void set_dest_to_default() = 0;
-            virtual void set_dest_to_value_from_str(std::string value) = 0;
 
+            //Sets the target value to the specified value
+            virtual void set_dest_to_value_from_str(std::string value) = 0;
         public: //Accessors
+
+            //Returns the long option name (or positional name) for this argument.
+            //Note that this may be a single-letter option if only a short option name was specified
             std::string long_option() const;
+
+            //Returns the short option name for this argument, note that this returns
+            //the empty string if no short option is specified, or if only the short option
+            //is specified.
             std::string short_option() const;
 
+            //Returns the help description for this option
             std::string help() const;
-            //virtual std::string default_value() const = 0;
+
+            //Returns the number of arguments this option expects
             char nargs() const;
+
+            //Returns the specified metavar for this option
             std::string metavar() const;
+
+            //Returns the list of valid choices for this option
             std::vector<std::string> choices() const;
+
+            //Returns the action associated with this option
             Action action() const;
+
+            //Returns whether this option is required
             bool required() const;
 
+            //Returns the specified default value
             std::string default_value() const;
 
+            //Returns the group name associated with this argument
             std::string group_name() const;
+
+            //Indicates where this option should appear in the help
             ShowIn show_in() const;
+
+            //Returns true if this is a positional argument
             bool positional() const;
+
+            //Returns treu if the default_value() was set
             bool default_set() const;
         public: //Lifetime
             virtual ~Argument() {}

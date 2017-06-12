@@ -14,8 +14,6 @@ set(LIB_INCLUDE_DIRS src)
 file(GLOB_RECURSE LIB_SOURCES src/*.cpp)
 file(GLOB_RECURSE LIB_HEADERS src/*.hpp)
 
-message(STATUS ${LIB_INCLUDE_DIRS})
-
 #Create the library
 add_library(libargparse STATIC
              ${LIB_HEADERS}
@@ -26,3 +24,7 @@ target_include_directories(libargparse PUBLIC ${LIB_INCLUDE_DIRS})
 #Create the test executable
 add_executable(argparse_test argparse_test.cpp)
 target_link_libraries(argparse_test libargparse)
+
+#Create the example executable
+add_executable(argparse_example argparse_example.cpp)
+target_link_libraries(argparse_example libargparse)

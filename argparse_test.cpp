@@ -11,6 +11,7 @@ struct Args {
     bool place;
     bool route;
 
+    bool show_help;
     bool timing_analysis;
     const char* slack_definition;
     bool echo_files;
@@ -105,8 +106,7 @@ struct OnOff {
 int main(int argc, const char** argv) {
     Args args;
 
-    auto parser = argparse::ArgumentParser("Test parser for libargparse");
-    parser.prog(argv[0]);
+    auto parser = argparse::ArgumentParser(argv[0], "Test parser for libargparse");
     parser.epilog("This is the epilog");
 
     auto& pos_grp = parser.add_argument_group("positional arguments");
@@ -149,6 +149,9 @@ int main(int argc, const char** argv) {
             .show_in(argparse::ShowIn::HELP_ONLY);
 
     auto& gen_grp = parser.add_argument_group("general options");
+    gen_grp.add_argument(args.show_help, "--help", "-h")
+            .help("Show this help message then exit")
+            .action(argparse::Action::HELP);
     gen_grp.add_argument<bool,OnOff>(args.timing_analysis, "--timing_analysis")
             .help("Controls whether timing analysis (and timing driven optimizations) are enabled.")
             .default_value("on") ;
@@ -431,18 +434,17 @@ int main(int argc, const char** argv) {
             .help("Signal activities file for all nets (see documentation).")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
-    parser.print_help();
+    auto specified_args = parser.parse_args(argc, argv);
+    for(auto& arg : specified_args) {
+        std::cout << "Group: " << arg->group_name() << " Specified argument: " << arg->long_option();
+        auto short_opt = arg->short_option();
+        if (!short_opt.empty()) {
+            std::cout << "/" << short_opt;
+        }
+        std::cout << "\n";
+    }
 
-    //auto specified_args = parser.parse_args(argc, argv);
-    //for(auto& arg : specified_args) {
-        //std::cout << "Group: " << arg->group_name() << " Specified argument: " << arg->long_option();
-        //auto short_opt = arg->short_option();
-        //if (!short_opt.empty()) {
-            //std::cout << "/" << short_opt;
-        //}
-        //std::cout << "\n";
-    //}
-
+#if 0
     std::vector<std::vector<std::string>> pass_cases = {
         {"my_arch.xml", "my_circuit.blif"},
         {"my_arch.xml", "my_circuit.blif", "--pack"},
@@ -485,11 +487,15 @@ int main(int argc, const char** argv) {
     }
 
     return num_failed;
+#endif
+    return 0;
 }
 
 bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line) {
     try {
-        parser.parse_args(cmd_line);
+        parser.parse_args_throw(cmd_line);
+    } catch(const argparse::ArgParseHelp&) {
+        return true;
     } catch(const argparse::ArgParseError& err) {
         std::cout << err.what() << "  [FAIL]" << std::endl;
         return false;
@@ -499,7 +505,7 @@ bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_
 
 bool expect_fail(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line) {
     try {
-        parser.parse_args(cmd_line);
+        parser.parse_args_throw(cmd_line);
     } catch(const argparse::ArgParseError& err) {
         std::cout << err.what() << "  [PASS]" << std::endl;
         return true;

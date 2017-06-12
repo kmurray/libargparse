@@ -13,12 +13,13 @@ namespace argparse {
      * ArgumentParser
      */
 
-    ArgumentParser::ArgumentParser(std::string description_str, std::ostream& os)
+    ArgumentParser::ArgumentParser(std::string prog_name, std::string description_str, std::ostream& os)
         : description_(description_str)
         , formatter_(new DefaultFormatter())
         , os_(os)
         {
-        argument_groups_.push_back(ArgumentGroup("arguments:"));
+        prog(prog_name);
+        argument_groups_.push_back(ArgumentGroup("arguments"));
     }
 
     ArgumentParser& ArgumentParser::prog(std::string prog_name, bool basename_only) {
@@ -40,17 +41,38 @@ namespace argparse {
         return argument_groups_[argument_groups_.size() - 1];
     }
 
+    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args(int argc, const char** argv, int error_exit_code, int help_exit_code) {
+        std::vector<std::shared_ptr<Argument>> specified_arguments;
+        try {
+            specified_arguments = parse_args_throw(argc, argv);
+        } catch (const argparse::ArgParseHelp&) {
+            //Help requested
+            print_help();
+            std::exit(help_exit_code);
+        } catch (const argparse::ArgParseError& e) {
+            //Failed to parse
+            std::cout << e.what() << "\n";
 
-    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args(int argc, const char** argv) {
+            std::cout << "\n";
+            print_usage();
+            std::exit(error_exit_code);
+        }
+        return specified_arguments;
+    }
+
+    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args_throw(int argc, const char** argv) {
         std::vector<std::string> arg_strs;
         for (int i = 1; i < argc; ++i) {
             arg_strs.push_back(argv[i]);
         }
 
-        return parse_args(arg_strs);
+        return parse_args_throw(arg_strs);
     }
     
-    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args(std::vector<std::string> arg_strs) {
+    std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args_throw(std::vector<std::string> arg_strs) {
+        add_help_option_if_unspecified();
+
+
         //Reset all the defaults
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
@@ -95,13 +117,14 @@ namespace argparse {
 
                 specified_arguments.push_back(arg);
 
-                std::string value;
                 if (arg->action() == Action::STORE_TRUE) {
-                    value = "true";
+                    arg->set_dest_to_value_from_str("true"); 
 
                 } else if (arg->action() == Action::STORE_FALSE) {
-                    value = "false";
-
+                    arg->set_dest_to_value_from_str("false");
+                } else if (arg->action() == Action::HELP) {
+                    arg->set_dest_to_value_from_str("true");
+                    throw ArgParseHelp();
                 } else {
                     assert(arg->action() == Action::STORE);
 
@@ -208,6 +231,11 @@ namespace argparse {
         return specified_arguments;
     }
 
+    void ArgumentParser::print_usage() {
+        formatter_->set_parser(this);
+        os_ << formatter_->format_usage();
+    }
+
     void ArgumentParser::print_help() {
         formatter_->set_parser(this);
         os_ << formatter_->format_usage();
@@ -220,6 +248,28 @@ namespace argparse {
     std::string ArgumentParser::description() const { return description_; }
     std::string ArgumentParser::epilog() const { return epilog_; }
     std::vector<ArgumentGroup> ArgumentParser::argument_groups() const { return argument_groups_; }
+
+    void ArgumentParser::add_help_option_if_unspecified() {
+        //Has a help already been specified
+        bool found_help = false;
+        for(auto& grp : argument_groups_) {
+            for(auto& arg : grp.arguments()) {
+                if(arg->action() == Action::HELP) {
+                    found_help = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found_help) {
+
+            auto& grp = argument_groups_[0];
+
+            grp.add_argument(show_help_dummy_, "--help", "-h")
+                .help("Shows this help message")
+                .action(Action::HELP);
+        }
+    }
 
     /*
      * ArgumentGroup
@@ -278,6 +328,8 @@ namespace argparse {
             throw ArgParseError("STORE_FALSE action requires nargs to be '0'");
         } else if (action() == Action::STORE_TRUE && nargs_type != '0') {
             throw ArgParseError("STORE_TRUE action requires nargs to be '0'");
+        } else if (action() == Action::HELP && nargs_type != '0') {
+            throw ArgParseError("HELP action requires nargs to be '0'");
         } else if (action() == Action::STORE && nargs_type != '1') {
             throw ArgParseError("STORE action requires nargs to be '1'");
         }
@@ -299,12 +351,12 @@ namespace argparse {
     Argument& Argument::action(Action action_type) {
         action_ = action_type;
 
-        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE) {
+        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE || action_ == Action::HELP) {
             this->nargs('0');
         } else if (action_ == Action::STORE) {
             this->nargs('1');
         } else {
-            throw ("Unrecognized argparse action");
+            throw ArgParseError("Unrecognized argparse action");
         }
 
         return *this;

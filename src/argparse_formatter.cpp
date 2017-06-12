@@ -46,7 +46,13 @@ namespace argparse {
                 if (!arg->required()) {
                     ss << "[";
                 }
-                ss << long_option_str(*arg);
+
+                auto short_opt = short_option_str(*arg);
+                if (!short_opt.empty()) {
+                    ss << short_opt; 
+                } else {
+                    ss << long_option_str(*arg);
+                }
 
                 if (!arg->required()) {
                     ss << "]";
