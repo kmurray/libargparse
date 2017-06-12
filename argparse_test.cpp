@@ -139,6 +139,7 @@ int main(
     stage_grp.add_argument<bool,OnOff>(args.route, "--analysis")
             .help("Run analysis")
             .action(argparse::Action::STORE_TRUE)
+            .required(true)
             .default_value("off");
 
     stage_grp.epilog("If none of the stage options are specified, all stages are run.\n"
@@ -458,12 +459,12 @@ int main(
     std::cout << "\n";
 
     std::vector<std::vector<std::string>> pass_cases = {
-        {"my_arch.xml", "my_circuit.blif"},
-        {"my_arch.xml", "my_circuit.blif", "--pack"},
-        {"my_arch.xml", "my_circuit.blif", "--timing_analysis", "on"},
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300"},
-        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "2"}, //Float from integer
-        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "2.0"}, //Float
+        {"my_arch.xml", "my_circuit.blif", "--analysis"},
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--pack"},
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--timing_analysis", "on"},
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--route_chan_width", "300"},
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--criticality_exp", "2"}, //Float from integer
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--criticality_exp", "2.0"}, //Float
     };
 
     int num_failed = 0;
@@ -477,17 +478,18 @@ int main(
     }
 
     std::vector<std::vector<std::string>> fail_cases = {
-        {""}, //Missing positional
-        {"my_arch.xml"}, //Missing positional
-        {"my_arch.xml", "my_circuit.blif", "extra"}, //Extra positional
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width"}, //Missing value to option
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "off"}, //Wrong option value type
-        {"my_arch.xml", "my_circuit.blif", "--disp", "132"}, //Wrong option value
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300", "5"}, //Extra option value
-        {"my_arch.xml", "my_circuit.blif", "--pack", "on"}, //Extra option value to toggle option
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300.5"}, //Type mismatch: float->int
-        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "on"}, //Wrong value type for float
-        {"my_arch.xml", "my_circuit.blif", "--slack_definition", "Z"}, //Mismatched choice
+        {"--analysis"}, //Missing positional
+        {"my_arch.xml", "--analysis"}, //Missing positional
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "extra"}, //Extra positional
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--route_chan_width"}, //Missing value to option
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--route_chan_width", "off"}, //Wrong option value type
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--disp", "132"}, //Wrong option value
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--route_chan_width", "300", "5"}, //Extra option value
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--pack", "on"}, //Extra option value to toggle option
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--route_chan_width", "300.5"}, //Type mismatch: float->int
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--criticality_exp", "on"}, //Wrong value type for float
+        {"my_arch.xml", "my_circuit.blif", "--analysis", "--slack_definition", "Z"}, //Valid type, but wrong choice
+        {"my_arch.xml", "my_circuit.blif"}, //Missing required
     };
 
     for(const auto& cmd_line : fail_cases) {

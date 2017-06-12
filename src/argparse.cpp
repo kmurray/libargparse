@@ -238,6 +238,25 @@ namespace argparse {
             throw ArgParseError(ss.str());
         }
 
+        //Missing required?
+        for (const auto& group : argument_groups()) {
+            for (const auto& arg : group.arguments()) {
+                if (arg->required()) {
+                    //potentially slow...
+                    auto iter = std::find(specified_arguments.begin(), specified_arguments.end(), arg);
+                    if (iter == specified_arguments.end()) {
+                        std::stringstream msg;
+                        msg << "Missing required argument: " << arg->long_option();
+                        auto short_opt = arg->short_option();
+                        if (!short_opt.empty()) {
+                            msg << "/" << short_opt;
+                        }
+                        throw ArgParseError(msg.str());
+                    }
+                }
+            }
+        }
+
         return specified_arguments;
     }
 
