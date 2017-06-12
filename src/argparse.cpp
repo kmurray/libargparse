@@ -245,7 +245,8 @@ namespace argparse {
     }
 
     Argument& Argument::nargs(char nargs_type) {
-        std::array<char,5> valid_nargs = {'0', '1', '?', '*', '+'};
+        //TODO: nargs > 1 support: '?', '*', '+'
+        std::array<char,5> valid_nargs = {'0', '1'};
 
         auto iter = std::find(valid_nargs.begin(), valid_nargs.end(), nargs_type);
         if (iter == valid_nargs.end()) {
@@ -254,15 +255,11 @@ namespace argparse {
 
         //Ensure nargs is consistent with the action
         if (action() == Action::STORE_FALSE && nargs_type != '0') {
-            throw ArgParseError("STORE_FALSE action requires nargs == '0'");
+            throw ArgParseError("STORE_FALSE action requires nargs to be '0'");
         } else if (action() == Action::STORE_TRUE && nargs_type != '0') {
-            throw ArgParseError("STORE_TRUE action requires nargs == '0'");
-        } else if (action() == Action::COUNT && nargs_type != '0') {
-            throw ArgParseError("COUNT action requires nargs == '0'");
-        } else if (action() == Action::STORE && nargs_type != '1' && nargs_type != '+') {
-            throw ArgParseError("STORE action requires nargs to be one of '1', '+'");
-        } else if (action() == Action::APPEND && nargs_type != '*' && nargs_type != '+') {
-            throw ArgParseError("APPEND action requires nargs to be one of '*', '+'");
+            throw ArgParseError("STORE_TRUE action requires nargs to be '0'");
+        } else if (action() == Action::STORE && nargs_type != '1') {
+            throw ArgParseError("STORE action requires nargs to be '1'");
         }
 
         nargs_ = nargs_type;
@@ -282,13 +279,12 @@ namespace argparse {
     Argument& Argument::action(Action action_type) {
         action_ = action_type;
 
-        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE || action_ == Action::COUNT) {
+        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE) {
             this->nargs('0');
         } else if (action_ == Action::STORE) {
             this->nargs('1');
         } else {
-            assert (action_ == Action::APPEND);
-            this->nargs('*');
+            throw ("Unrecognized argparse action");
         }
 
         return *this;

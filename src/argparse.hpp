@@ -22,8 +22,6 @@ namespace argparse {
         STORE,
         STORE_TRUE,
         STORE_FALSE,
-        APPEND,
-        COUNT
     };
 
     enum class ShowIn {

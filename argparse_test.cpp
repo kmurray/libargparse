@@ -76,8 +76,6 @@ struct Args {
     std::string tech_properties_file;
     std::string activity_file;
 
-
-
     bool full_stats;
     bool gen_post_synthesis_netlist;
 };
