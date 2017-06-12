@@ -471,7 +471,7 @@ int main(int argc, const char** argv) {
         {"my_arch.xml", "my_circuit.blif", "--disp", "132"}, //Wrong option value
         {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300", "5"}, //Extra option value
         {"my_arch.xml", "my_circuit.blif", "--pack", "on"}, //Extra option value to toggle option
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300.5"}, //Type mismatch
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300.5"}, //Type mismatch: float->int
         {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "on"}, //Wrong value type for float
     };
 

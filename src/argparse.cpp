@@ -129,7 +129,7 @@ namespace argparse {
                         size_t next_idx = i + 1 + nargs_read;
                         if (next_idx >= arg_strs.size()) {
                             std::stringstream msg;
-                            msg << "Missing expected argument for '" << arg_strs[i] << "'";
+                            msg << "Missing expected argument for " << arg_strs[i] << "";
                             throw ArgParseError(msg.str());
 
                         }
@@ -152,7 +152,19 @@ namespace argparse {
                     if (arg->nargs() == '1') {
                         assert(nargs_read == 1);
                         assert(values.size() == 1);
-                        arg->set_dest_to_value_from_str(values[0]); 
+
+
+                        try {
+                            arg->set_dest_to_value_from_str(values[0]); 
+                        } catch (const ArgParseConversionError& e) {
+                            std::stringstream msg;
+                            msg << e.what() << " for " << arg->long_option();
+                            auto short_opt = arg->short_option();
+                            if (!short_opt.empty()) {
+                                msg << "/" << short_opt;
+                            }
+                            throw ArgParseConversionError(msg.str());
+                        }
                     } else {
                         //Multiple values
                         assert(false); //TODO: implement
@@ -171,6 +183,14 @@ namespace argparse {
                     //Positional argument
                     auto arg = positional_args.front();
                     positional_args.pop_front();
+
+                    try {
+                        arg->set_dest_to_value_from_str(arg_strs[i]); 
+                    } catch (const ArgParseConversionError& e) {
+                        std::stringstream msg;
+                        msg << e.what() << " for positional argument " << arg->long_option();
+                        throw ArgParseConversionError(msg.str());
+                    }
 
                     auto value = arg_strs[i];
                     specified_arguments.push_back(arg);

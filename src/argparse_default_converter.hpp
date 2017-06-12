@@ -53,7 +53,7 @@ class DefaultConverter {
                 if (!arg_type_str.empty()) {
                     msg << " to " << arg_type_str;
                 }
-                throw ArgParseError(msg.str());
+                throw ArgParseConversionError(msg.str());
             }
 
             return val;
@@ -67,7 +67,7 @@ class DefaultConverter {
             if (!converted_ok) {
                 std::stringstream msg;
                 msg << "Invalid conversion from '" << val << "' to string";
-                throw ArgParseError(msg.str());
+                throw ArgParseConversionError(msg.str());
             }
             return ss.str();
         }
