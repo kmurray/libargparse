@@ -1,106 +1,110 @@
 #include "argparse.hpp"
+#include "argparse_util.hpp"
+struct Args {
+    std::string architecture_file;
+    std::string circuit;
+
+    bool disp;
+    bool auto_value;
+
+    bool pack;
+    bool place;
+    bool route;
+
+    bool timing_analysis;
+    const char* slack_definition;
+    bool echo_files;
+    bool verify_file_digests;
+
+    std::string blif_file;
+    std::string net_file;
+    std::string place_file;
+    std::string route_file;
+    std::string sdc_file;
+    std::string outfile_prefix;
+
+    bool absorb_buffer_luts;
+    bool sweep_dangling_primary_ios;
+    bool sweep_dangling_nets;
+    bool sweep_dangling_blocks;
+    bool sweep_constant_primary_outputs;
+
+    bool connection_driven_clustering;
+    bool allow_unrelated_clustering;
+    float alpha_clustering;
+    float beta_clustering;
+    bool timing_driven_clustering;
+    std::string cluster_seed_type;
+
+    size_t seed;
+    bool enable_timing_computations;
+    float inner_num;
+    float init_t;
+    float exit_t;
+    float alpha_t;
+    std::string fix_pins;
+    std::string place_algorithm;
+    size_t place_chan_width;
+
+    float timing_tradeoff;
+    int recompute_crit_iter;
+    int inner_loop_recompute_divider;
+    float td_place_exp_first;
+    float td_place_exp_last;
+
+    int max_router_iterations;
+    float first_iter_pres_fac;
+    float initial_pres_fac;
+    float pres_fac_mult;
+    float acc_fac;
+    int bb_factor;
+    std::string base_cost_type;
+    float bend_cost;
+    std::string route_type;
+    size_t route_chan_width;
+    size_t min_route_chan_width_hint;
+    bool verify_binary_search;
+    std::string router_algorithm;
+    int min_incremental_reroute_fanout;
+
+    float astar_fac;
+    float max_criticality;
+    float criticality_exp;
+    std::string routing_failure_predictor;
+
+    bool power;
+    std::string tech_properties_file;
+    std::string activity_file;
+
+
+
+    bool full_stats;
+    bool gen_post_synthesis_netlist;
+};
+
+bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line);
+bool expect_fail(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line);
+
+struct OnOff {
+    bool from_str(std::string str) {
+        if      (str == "on")  return true;
+        else if (str == "off") return false;
+        std::stringstream msg;
+        msg << "Invalid conversion from '" << str << "' to boolean (expected one of: " << argparse::join(default_choices(), ", ") << ")";
+        throw argparse::ArgParseConversionError(msg.str());
+    }
+
+    std::string to_str(bool val) {
+        if (val) return "on";
+        return "off";
+    }
+
+    std::vector<std::string> default_choices() {
+        return {"on", "off"};
+    }
+};
 
 int main(int argc, const char** argv) {
-
-    struct Args {
-        std::string architecture_file;
-        std::string circuit;
-
-        bool disp;
-        bool auto_value;
-
-        bool pack;
-        bool place;
-        bool route;
-
-        bool timing_analysis;
-        const char* slack_definition;
-        bool echo_files;
-        bool verify_file_digests;
-
-        std::string blif_file;
-        std::string net_file;
-        std::string place_file;
-        std::string route_file;
-        std::string sdc_file;
-        std::string outfile_prefix;
-
-        bool absorb_buffer_luts;
-        bool sweep_dangling_primary_ios;
-        bool sweep_dangling_nets;
-        bool sweep_dangling_blocks;
-        bool sweep_constant_primary_outputs;
-
-        bool connection_driven_clustering;
-        bool allow_unrelated_clustering;
-        float alpha_clustering;
-        float beta_clustering;
-        bool timing_driven_clustering;
-        std::string cluster_seed_type;
-
-        size_t seed;
-        bool enable_timing_computations;
-        float inner_num;
-        float init_t;
-        float exit_t;
-        float alpha_t;
-        std::string fix_pins;
-        std::string place_algorithm;
-        size_t place_chan_width;
-
-        float timing_tradeoff;
-        int recompute_crit_iter;
-        int inner_loop_recompute_divider;
-        float td_place_exp_first;
-        float td_place_exp_last;
-
-        int max_router_iterations;
-        float first_iter_pres_fac;
-        float initial_pres_fac;
-        float pres_fac_mult;
-        float acc_fac;
-        int bb_factor;
-        std::string base_cost_type;
-        float bend_cost;
-        std::string route_type;
-        size_t route_chan_width;
-        size_t min_route_chan_width_hint;
-        bool verify_binary_search;
-        std::string router_algorithm;
-        int min_incremental_reroute_fanout;
-
-        float astar_fac;
-        float max_criticality;
-        float criticality_exp;
-        std::string routing_failure_predictor;
-
-        bool power;
-        std::string tech_properties_file;
-        std::string activity_file;
-
-
-
-        bool full_stats;
-        bool gen_post_synthesis_netlist;
-    };
-
-    struct OnOff {
-        bool from_str(std::string str) {
-            if      (str == "on")  return true;
-            else if (str == "off") return false;
-            throw argparse::ArgParseConversionError("Invalid conversion");
-        }
-
-        std::string to_str(bool val) {
-            if (val) return "on";
-            return "off";
-        }
-
-        std::vector<std::string> default_choices() {
-            return {"on", "off"};
-        }
-    };
-
     Args args;
 
     auto parser = argparse::ArgumentParser("Test parser for libargparse");
@@ -159,11 +163,13 @@ int main(int argc, const char** argv) {
             .choices({"R", "I", "S", "G", "C", "N"})
             .show_in(argparse::ShowIn::HELP_ONLY);
     gen_grp.add_argument<bool,OnOff>(args.echo_files, "--echo_file")
-            .help("Generate echo files of key internal data structures. Useful for debugging VPR, and typically end in .echo")
+            .help("Generate echo files of key internal data structures."
+                  " Useful for debugging VPR, and typically end in .echo")
             .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
     gen_grp.add_argument<bool,OnOff>(args.verify_file_digests, "--verify_file_digests")
-            .help("Verify that files loaded by VPR (e.g. architecture, netlist, previous packing/placement/routing) are consistent")
+            .help("Verify that files loaded by VPR (e.g. architecture, netlist,"
+                  " previous packing/placement/routing) are consistent")
             .default_value("on")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
@@ -213,19 +219,24 @@ int main(int argc, const char** argv) {
 
     auto& pack_grp = parser.add_argument_group("packing options:");
     pack_grp.add_argument<bool,OnOff>(args.connection_driven_clustering, "--connection_driven_clustering")
-            .help("Controls whether or not packing prioritizes the absorption of nets with fewer connections into a complex logic block over nets with more connections")
+            .help("Controls whether or not packing prioritizes the absorption of nets with fewer"
+                  " connections into a complex logic block over nets with more connections")
             .default_value("on")
             .show_in(argparse::ShowIn::HELP_ONLY);
     pack_grp.add_argument<bool,OnOff>(args.allow_unrelated_clustering, "--allow_unrelated_clustering")
-            .help("Controls whether or not primitives with no attraction to the current cluster can be packed into it")
+            .help("Controls whether or not primitives with no attraction to the current cluster"
+                  " can be packed into it")
             .default_value("on")
             .show_in(argparse::ShowIn::HELP_ONLY);
     pack_grp.add_argument(args.alpha_clustering, "--alpha_clustering")
-            .help("Parameter that weights the optimization of timing vs area. 0.0 focuses solely on area, 1.0 solely on timing.")
+            .help("Parameter that weights the optimization of timing vs area. 0.0 focuses solely on"
+                  " area, 1.0 solely on timing.")
             .default_value("0.75")
             .show_in(argparse::ShowIn::HELP_ONLY);
     pack_grp.add_argument(args.beta_clustering, "--beta_clustering")
-            .help("Parameter that weights the absorption of small nets vs signal sharing. 0.0 focuses solely on sharing, 1.0 solely on small net absoprtion. Only meaningful if --connection_driven_clustering=on")
+            .help("Parameter that weights the absorption of small nets vs signal sharing."
+                  " 0.0 focuses solely on sharing, 1.0 solely on small net absoprtion."
+                  " Only meaningful if --connection_driven_clustering=on")
             .default_value("0.9")
             .show_in(argparse::ShowIn::HELP_ONLY);
     pack_grp.add_argument<bool,OnOff>(args.timing_driven_clustering, "--timing_driven_clustering")
@@ -233,7 +244,8 @@ int main(int argc, const char** argv) {
             .default_value("on")
             .show_in(argparse::ShowIn::HELP_ONLY);
     pack_grp.add_argument(args.cluster_seed_type, "--cluster_seed_type")
-            .help("Controls how primitives are chosen as seeds. (Default: blend if timing driven, max_inputs otherwise)")
+            .help("Controls how primitives are chosen as seeds."
+                  " (Default: blend if timing driven, max_inputs otherwise)")
             .choices({"blend", "timing", "max_inputs"})
             .show_in(argparse::ShowIn::HELP_ONLY);
 
@@ -259,7 +271,8 @@ int main(int argc, const char** argv) {
             .default_value("0.01")
             .show_in(argparse::ShowIn::HELP_ONLY);
     place_grp.add_argument(args.alpha_t, "--alpha_t")
-            .help("Temperature scaling factor for manual annealing schedule. Old temperature is multiplied by alpha_t")
+            .help("Temperature scaling factor for manual annealing schedule."
+                  " Old temperature is multiplied by alpha_t")
             .default_value("0.01")
             .show_in(argparse::ShowIn::HELP_ONLY);
     place_grp.add_argument(args.fix_pins, "--fix_pins")
@@ -307,7 +320,8 @@ int main(int argc, const char** argv) {
 
     auto& route_grp = parser.add_argument_group("routing options:");
     route_grp.add_argument(args.max_router_iterations, "--max_route_iterations")
-            .help("Maximum number of Pathfinder-based routing iterations before the circuit is declared unroutable at a given channel width")
+            .help("Maximum number of Pathfinder-based routing iterations before the circuit is"
+                  " declared unroutable at a given channel width")
             .default_value("50")
             .show_in(argparse::ShowIn::HELP_ONLY);
     route_grp.add_argument(args.initial_pres_fac, "--first_iter_pres_fac")
@@ -319,7 +333,8 @@ int main(int argc, const char** argv) {
             .default_value("0.5")
             .show_in(argparse::ShowIn::HELP_ONLY);
     route_grp.add_argument(args.pres_fac_mult, "--pres_fac_mult")
-            .help("Sets the growth factor by which the present overuse penalty factor is multiplied after each routing iteration")
+            .help("Sets the growth factor by which the present overuse penalty factor is"
+                  " multiplied after each routing iteration")
             .default_value("1.3")
             .show_in(argparse::ShowIn::HELP_ONLY);
     route_grp.add_argument(args.acc_fac, "--acc_fac")
@@ -404,7 +419,8 @@ int main(int argc, const char** argv) {
             .show_in(argparse::ShowIn::HELP_ONLY);
 
     analysis_grp.add_argument<bool,OnOff>(args.gen_post_synthesis_netlist, "--gen_post_synthesis_netlist")
-            .help("Generates the post-synthesis netlist (in BLIF and Verilog) along with delay information (in SDF)")
+            .help("Generates the post-synthesis netlist (in BLIF and Verilog) along with delay information (in SDF)."
+                  " Used for post-implementation simulation and verification")
             .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
@@ -416,22 +432,73 @@ int main(int argc, const char** argv) {
             .show_in(argparse::ShowIn::HELP_ONLY);
     power_grp.add_argument(args.tech_properties_file, "--tech_properties_file")
             .help("XML file containing CMOS technology properties (see documentation).")
-            .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
     power_grp.add_argument(args.activity_file, "--activity_file")
             .help("Signal activities file for all nets (see documentation).")
-            .default_value("off")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
     parser.print_help();
 
-    parser.parse_args(argc, argv);
+    std::vector<std::vector<std::string>> pass_cases = {
+        {"my_arch.xml", "my_circuit.blif"},
+        {"my_arch.xml", "my_circuit.blif", "--pack"},
+        {"my_arch.xml", "my_circuit.blif", "--timing_analysis", "on"},
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300"},
+        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "2"}, //Float from integer
+        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "2.0"}, //Float
+    };
 
-    std::cout << "args.disp: " << args.disp << "\n";
+    int num_failed = 0;
+    for(const auto& cmd_line : pass_cases) {
+        bool pass = expect_pass(parser, cmd_line);
 
-    //for(auto& arg : args) {
-        //std::cout << arg.name() << ": " << arg.value() << "\n";
-    //}
+        if(!pass) {
+            std::cout << "Failed to parse: '" << argparse::join(cmd_line, " ") << "'" << std::endl;
+            ++num_failed;
+        }
+    }
 
-    return 0;
+    std::vector<std::vector<std::string>> fail_cases = {
+        {""}, //Missing positional
+        {"my_arch.xml"}, //Missing positional
+        {"my_arch.xml", "my_circuit.blif", "extra"}, //Extra positional
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width"}, //Missing value to option
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "off"}, //Wrong option value
+        {"my_arch.xml", "my_circuit.blif", "--disp", "132"}, //Wrong option value
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300", "5"}, //Extra option value
+        {"my_arch.xml", "my_circuit.blif", "--pack", "on"}, //Extra option value to toggle option
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300.5"}, //Type mismatch
+        {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "on"}, //Wrong value type for float
+    };
+
+    for(const auto& cmd_line : fail_cases) {
+        bool pass = expect_fail(parser, cmd_line);
+
+        if(!pass) {
+            std::cout << "Parsed successfully when expected failure: '" << argparse::join(cmd_line, " ") << "'" << std::endl;
+            ++num_failed;
+        }
+    }
+
+    return num_failed;
+}
+
+bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line) {
+    try {
+        parser.parse_args(cmd_line);
+    } catch(const argparse::ArgParseError& err) {
+        std::cout << err.what() << "  [FAIL]" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool expect_fail(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line) {
+    try {
+        parser.parse_args(cmd_line);
+    } catch(const argparse::ArgParseError& err) {
+        std::cout << err.what() << "  [PASS]" << std::endl;
+        return true;
+    }
+    return false;
 }

@@ -2,11 +2,38 @@
 #define ARGPARSE_DEFAULT_CONVERTER_HPP
 #include <sstream>
 #include <vector>
+#include <typeinfo>
 #include "argparse_error.hpp"
 #include "argparse_util.hpp"
 
 namespace argparse {
 
+/*
+ * Get a useful description of the argument type
+ */
+//Signed Integer
+template<typename T>
+typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, std::string>::type
+arg_type() { return "integer"; }
+
+//Unsigned Integer
+template<typename T>
+typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, std::string>::type
+arg_type() { return "positive integer"; }
+
+//Float
+template<typename T>
+typename std::enable_if<std::is_floating_point<T>::value, std::string>::type
+arg_type() { return "float"; }
+
+//Unkown
+template<typename T>
+typename std::enable_if<!std::is_floating_point<T>::value && !std::is_integral<T>::value, std::string>::type
+arg_type() { return ""; } //Empty
+
+/*
+ * Default Conversions to/from strings
+ */
 template<typename T>
 class DefaultConverter {
     public:
@@ -20,7 +47,13 @@ class DefaultConverter {
             bool fail = ss.fail();
             bool converted_ok = eof && !fail;
             if (!converted_ok) {
-                throw ArgParseError("Invalid conversion from string");
+                std::stringstream msg;
+                msg << "Invalid conversion from '" << str << "'";
+                std::string arg_type_str = arg_type<T>();
+                if (!arg_type_str.empty()) {
+                    msg << " to " << arg_type_str;
+                }
+                throw ArgParseError(msg.str());
             }
 
             return val;
@@ -32,7 +65,9 @@ class DefaultConverter {
 
             bool converted_ok = ss.eof() && !ss.fail();
             if (!converted_ok) {
-                throw ArgParseError("Invalid conversion to string");
+                std::stringstream msg;
+                msg << "Invalid conversion from '" << val << "' to string";
+                throw ArgParseError(msg.str());
             }
             return ss.str();
         }
@@ -65,7 +100,8 @@ class DefaultConverter<bool> {
 };
 
 //DefaultConverter specializations for std::string
-// The default conversion checks for eof() which is not set for empty strings
+// The default conversion checks for eof() which is not set for empty strings,
+// nessesitating the specialization
 template<>
 class DefaultConverter<std::string> {
     public:

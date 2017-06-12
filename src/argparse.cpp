@@ -123,10 +123,19 @@ namespace argparse {
                     std::vector<std::string> values;
                     size_t nargs_read;
                     for (nargs_read = 0; nargs_read < max_values_to_read; ++nargs_read) {
-                        std::string str = arg_strs[i + 1 + nargs_read];
+                        size_t next_idx = i + 1 + nargs_read;
+                        if (next_idx >= arg_strs.size()) {
+                            std::stringstream msg;
+                            msg << "Missing expected argument for '" << arg_strs[i] << "'";
+                            throw ArgParseError(msg.str());
+
+                        }
+                        std::string str = arg_strs[next_idx];
+
 
                         if (is_argument(str)) break;
 
+                        values.push_back(str);
                     }
 
                     if (nargs_read < min_values_to_read) {
@@ -136,6 +145,16 @@ namespace argparse {
                     }
                     assert (nargs_read <= max_values_to_read);
 
+                    //Set the option values appropriately
+                    if (arg->nargs() == '1') {
+                        assert(nargs_read == 1);
+                        assert(values.size() == 1);
+                        arg->set_dest_to_value_from_str(values[0]); 
+                    } else {
+                        //Multiple values
+                        assert(false); //TODO: implement
+                    }
+
                     i += nargs_read; //Skip over the values
                 }
 
@@ -143,7 +162,7 @@ namespace argparse {
                 if (positional_args.empty()) {
                     //Unrecognized
                     std::stringstream ss;
-                    ss << "Unrecognized command-line argument '" << arg_strs[i] << "'";
+                    ss << "Unexpected command-line argument '" << arg_strs[i] << "'";
                     throw ArgParseError(ss.str().c_str());
                 } else {
                     //Positional argument
@@ -153,6 +172,13 @@ namespace argparse {
                     auto value = arg_strs[i];
                 }
             }
+        }
+
+        //Missing positionals?
+        for(const auto& remaining_positional : positional_args) {
+            std::stringstream ss;
+            ss << "Missing required positional argument: " << remaining_positional->long_option();
+            throw ArgParseError(ss.str());
         }
     }
 

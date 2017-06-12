@@ -113,6 +113,7 @@ namespace argparse {
             Argument& show_in(ShowIn show);
 
             virtual void set_dest_to_default() = 0;
+            virtual void set_dest_to_value_from_str(std::string value) = 0;
 
         public: //Accessors
             std::string long_option() const;
@@ -162,7 +163,7 @@ namespace argparse {
         public: //Mutators
             void set_dest_to_default() override;
 
-            void set_dest_to_value_from_str(std::string value);
+            void set_dest_to_value_from_str(std::string value) override;
             void set_dest_to_value(T value);
         private: //Data
             T& dest_;
