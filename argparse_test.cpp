@@ -481,12 +481,13 @@ int main(
         {"my_arch.xml"}, //Missing positional
         {"my_arch.xml", "my_circuit.blif", "extra"}, //Extra positional
         {"my_arch.xml", "my_circuit.blif", "--route_chan_width"}, //Missing value to option
-        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "off"}, //Wrong option value
+        {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "off"}, //Wrong option value type
         {"my_arch.xml", "my_circuit.blif", "--disp", "132"}, //Wrong option value
         {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300", "5"}, //Extra option value
         {"my_arch.xml", "my_circuit.blif", "--pack", "on"}, //Extra option value to toggle option
         {"my_arch.xml", "my_circuit.blif", "--route_chan_width", "300.5"}, //Type mismatch: float->int
         {"my_arch.xml", "my_circuit.blif", "--criticality_exp", "on"}, //Wrong value type for float
+        {"my_arch.xml", "my_circuit.blif", "--slack_definition", "Z"}, //Mismatched choice
     };
 
     for(const auto& cmd_line : fail_cases) {

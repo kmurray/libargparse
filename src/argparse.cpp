@@ -72,7 +72,6 @@ namespace argparse {
     std::vector<std::shared_ptr<Argument>> ArgumentParser::parse_args_throw(std::vector<std::string> arg_strs) {
         add_help_option_if_unspecified();
 
-
         //Reset all the defaults
         for (const auto& group : argument_groups()) {
             for (const auto& arg : group.arguments()) {
@@ -166,7 +165,7 @@ namespace argparse {
                     if (nargs_read < min_values_to_read) {
                         std::stringstream msg;
                         msg << "Expected at least " << min_values_to_read << " values for argument '" << arg_strs[i] << "'";
-                        throw ArgParseError(msg.str().c_str());
+                        throw ArgParseError(msg.str());
                     }
                     assert (nargs_read <= max_values_to_read);
 
@@ -174,6 +173,18 @@ namespace argparse {
                     if (arg->nargs() == '1') {
                         assert(nargs_read == 1);
                         assert(values.size() == 1);
+
+                        auto choices = arg->choices();
+                        if (!choices.empty()) {
+                            //Value must be one off the valid choices
+                            auto find_iter = std::find(choices.begin(), choices.end(), values[0]);
+                            if (find_iter == choices.end()) {
+                                std::stringstream msg;
+                                msg << "Unexpected option value '" << values[0] << "' (expected one of: " << join(choices, ", ");
+                                msg << ") for " << arg->long_option();
+                                throw ArgParseError(msg.str());
+                            }
+                        }
 
 
                         try {
@@ -200,7 +211,7 @@ namespace argparse {
                     //Unrecognized
                     std::stringstream ss;
                     ss << "Unexpected command-line argument '" << arg_strs[i] << "'";
-                    throw ArgParseError(ss.str().c_str());
+                    throw ArgParseError(ss.str());
                 } else {
                     //Positional argument
                     auto arg = positional_args.front();
