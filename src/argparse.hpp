@@ -167,6 +167,12 @@ namespace argparse {
 
             //Sets the target value to the specified value
             virtual void set_dest_to_value_from_str(std::string value) = 0;
+
+            //Set the target value to true
+            virtual void set_dest_to_true() = 0;
+
+            //Set the target value to false
+            virtual void set_dest_to_false() = 0;
         public: //Accessors
 
             //Returns the long option name (or positional name) for this argument.
@@ -216,6 +222,8 @@ namespace argparse {
             Argument(Argument&&) = default;
             Argument& operator=(const Argument&) = delete;
             Argument& operator=(const Argument&&) = delete;
+        protected:
+            virtual bool check_action() = 0;
         private: //Data
             std::string long_opt_;
             std::string short_opt_;
@@ -238,14 +246,77 @@ namespace argparse {
     template<typename T, typename Converter=DefaultConverter<T>>
     class SingleValueArgument : public Argument {
         public: //Constructors
-            SingleValueArgument(T& dest, std::string long_opt, std::string short_opt);
+            SingleValueArgument(T& dest, std::string long_opt, std::string short_opt)
+                : Argument(long_opt, short_opt)
+                , dest_(dest)
+                {}
         public: //Mutators
-            void set_dest_to_default() override;
+            void set_dest_to_default() override {
+                set_dest_to_value_from_str(default_value());
+            }
 
-            void set_dest_to_value_from_str(std::string value) override;
-            void set_dest_to_value(T value);
+            void set_dest_to_value_from_str(std::string value) override {
+                set_dest_to_value(Converter().from_str(value));
+            }
+            void set_dest_to_value(T value) {
+                dest_ = value;
+            }
+
+            void set_dest_to_true() override {
+                throw ArgParseError("Non-boolean destination can not be set true");
+            }
+            void set_dest_to_false() override {
+                throw ArgParseError("Non-boolean destination can not be set false");
+            }
+
+            bool check_action() override {
+                if (action() == Action::STORE_TRUE) {
+                    std::stringstream msg;
+                    msg << "Non-boolean destination can not have STORE_TRUE action (" << long_option() << ")";
+                    throw ArgParseError(msg.str());
+                } else if (action() == Action::STORE_FALSE) {
+                    std::stringstream msg;
+                    msg << "Non-boolean destination can not have STORE_FALSE action (" << long_option() << ")";
+                    throw ArgParseError(msg.str());
+                } else if (action() != Action::STORE) {
+                    throw ArgParseError("Unexpected action (expected STORE)");
+                }
+                return true;
+            }
         private: //Data
             T& dest_;
+    };
+
+    //bool specialization for STORE_TRUE/STORE_FALSE
+    template<typename Converter>
+    class SingleValueArgument<bool,Converter> : public Argument {
+        public: //Constructors
+            SingleValueArgument(bool& dest, std::string long_opt, std::string short_opt)
+                : Argument(long_opt, short_opt)
+                , dest_(dest)
+                {}
+        public: //Mutators
+            void set_dest_to_default() override {
+                set_dest_to_value_from_str(default_value());
+            }
+
+            void set_dest_to_value_from_str(std::string value) override {
+                set_dest_to_value(Converter().from_str(value));
+            }
+            void set_dest_to_value(bool value) {
+                dest_ = value;
+            }
+
+            void set_dest_to_true() override {
+                set_dest_to_value(true);
+            }
+            void set_dest_to_false() override {
+                set_dest_to_value(false);
+            }
+
+            bool check_action() override { return true; }
+        private: //Data
+            bool& dest_;
     };
 
 #ifdef MULTI_VALUE

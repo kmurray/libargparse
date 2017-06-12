@@ -59,29 +59,6 @@ namespace argparse {
      * Argument
      */
 
-    /*
-     * SingleValueArgument
-     */
-    template<typename T, typename Converter>
-    SingleValueArgument<T,Converter>::SingleValueArgument(T& dest, std::string long_opt, std::string short_opt)
-        : Argument(long_opt, short_opt)
-        , dest_(dest)
-        {}
-
-    template<typename T, typename Converter>
-    void SingleValueArgument<T,Converter>::set_dest_to_default() {
-        set_dest_to_value_from_str(default_value());
-    }
-
-    template<typename T, typename Converter>
-    void SingleValueArgument<T,Converter>::set_dest_to_value_from_str(std::string val) {
-        set_dest_to_value(Converter().from_str(val));
-    }
-
-    template<typename T, typename Converter>
-    void SingleValueArgument<T,Converter>::set_dest_to_value(T val) {
-        dest_ = val;
-    }
 
 #ifdef MULTI_VALUE
     /*

@@ -118,10 +118,9 @@ namespace argparse {
                 specified_arguments.push_back(arg);
 
                 if (arg->action() == Action::STORE_TRUE) {
-                    arg->set_dest_to_value_from_str("true"); 
-
+                    arg->set_dest_to_true(); 
                 } else if (arg->action() == Action::STORE_FALSE) {
-                    arg->set_dest_to_value_from_str("false");
+                    arg->set_dest_to_false();
                 } else if (arg->action() == Action::HELP) {
                     arg->set_dest_to_value_from_str("true");
                     throw ArgParseHelp();
@@ -335,6 +334,8 @@ namespace argparse {
         }
 
         nargs_ = nargs_type;
+
+        check_action();
         return *this;
     }
 

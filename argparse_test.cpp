@@ -1,5 +1,8 @@
 #include "argparse.hpp"
 #include "argparse_util.hpp"
+
+#define TEST
+
 struct Args {
     std::string architecture_file;
     std::string circuit;
@@ -103,7 +106,12 @@ struct OnOff {
     }
 };
 
-int main(int argc, const char** argv) {
+int main(
+        int 
+#ifndef TEST
+        argc
+#endif
+         , const char** argv) {
     Args args;
 
     auto parser = argparse::ArgumentParser(argv[0], "Test parser for libargparse");
@@ -434,6 +442,7 @@ int main(int argc, const char** argv) {
             .help("Signal activities file for all nets (see documentation).")
             .show_in(argparse::ShowIn::HELP_ONLY);
 
+#ifndef TEST
     auto specified_args = parser.parse_args(argc, argv);
     for(auto& arg : specified_args) {
         std::cout << "Group: " << arg->group_name() << " Specified argument: " << arg->long_option();
@@ -443,8 +452,11 @@ int main(int argc, const char** argv) {
         }
         std::cout << "\n";
     }
+    return 0;
+#else
+    parser.print_help();
+    std::cout << "\n";
 
-#if 0
     std::vector<std::vector<std::string>> pass_cases = {
         {"my_arch.xml", "my_circuit.blif"},
         {"my_arch.xml", "my_circuit.blif", "--pack"},
@@ -488,7 +500,6 @@ int main(int argc, const char** argv) {
 
     return num_failed;
 #endif
-    return 0;
 }
 
 bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line) {
