@@ -45,9 +45,12 @@ namespace argparse {
             const std::string& group() const { return group_; }
 
         public: //Mutators
-            void set(T val, Provenance prov, std::string grp="") {
+            void set(T val, Provenance prov) {
                 value_ = val;
                 provenance_ = prov;
+            }
+
+            void set_group(std::string grp) {
                 group_ = grp;
             }
         private:
