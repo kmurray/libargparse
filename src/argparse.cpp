@@ -417,6 +417,14 @@ namespace argparse {
         return *this;
     }
 
+    std::string Argument::name() const { 
+        std::string name_str = long_option();
+        if (!short_option().empty()) {
+            name_str += "/" + short_option();
+        }
+        return name_str;
+    }
+
     std::string Argument::long_option() const { return long_opt_; }
     std::string Argument::short_option() const { return short_opt_; }
     std::string Argument::help() const { return help_; }

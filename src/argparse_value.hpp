@@ -25,12 +25,6 @@ namespace argparse {
         public:
             typedef T value_type;
 
-            ArgValue()
-                : value_(T())
-                , provenance_(Provenance::UNSPECIFIED)
-                , group_("")
-                {}
-
         public: //Accessors
             //Automatic conversion to underlying value type
             operator T() const { return value_; }
@@ -44,6 +38,8 @@ namespace argparse {
             //Returns the group this argument is associated with (or an empty string if none)
             const std::string& group() const { return group_; }
 
+            const std::string& name() const { return name_; }
+
         public: //Mutators
             void set(T val, Provenance prov) {
                 value_ = val;
@@ -53,10 +49,15 @@ namespace argparse {
             void set_group(std::string grp) {
                 group_ = grp;
             }
+
+            void set_name(std::string name_str) {
+                name_ = name_str;
+            }
         private:
-            T value_;
-            Provenance provenance_;
-            std::string group_;
+            T value_ = T();
+            Provenance provenance_ = Provenance::UNSPECIFIED;
+            std::string group_ = "";
+            std::string name_ = "";
     };
 
     //Automatically convert to the underlying type for ostream output
