@@ -385,7 +385,10 @@ namespace argparse {
     Argument& Argument::action(Action action_type) {
         action_ = action_type;
 
-        if (action_ == Action::STORE_FALSE || action_ == Action::STORE_TRUE || action_ == Action::HELP) {
+        if (   action_ == Action::STORE_FALSE 
+            || action_ == Action::STORE_TRUE 
+            || action_ == Action::HELP 
+            || action_ == Action::VERSION) {
             this->nargs('0');
         } else if (action_ == Action::STORE) {
             this->nargs('1');
