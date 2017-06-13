@@ -36,9 +36,9 @@ namespace argparse {
             Provenance provenance() const { return provenance_; }
 
             //Returns the group this argument is associated with (or an empty string if none)
-            const std::string& group() const { return group_; }
+            const std::string& argument_group() const { return argument_group_; }
 
-            const std::string& name() const { return name_; }
+            const std::string& argument_name() const { return argument_name_; }
 
         public: //Mutators
             void set(T val, Provenance prov) {
@@ -46,18 +46,18 @@ namespace argparse {
                 provenance_ = prov;
             }
 
-            void set_group(std::string grp) {
-                group_ = grp;
+            void set_argument_group(std::string grp) {
+                argument_group_ = grp;
             }
 
-            void set_name(std::string name_str) {
-                name_ = name_str;
+            void set_argument_name(std::string name_str) {
+                argument_name_ = name_str;
             }
         private:
             T value_ = T();
             Provenance provenance_ = Provenance::UNSPECIFIED;
-            std::string group_ = "";
-            std::string name_ = "";
+            std::string argument_group_ = "";
+            std::string argument_name_ = "";
     };
 
     //Automatically convert to the underlying type for ostream output

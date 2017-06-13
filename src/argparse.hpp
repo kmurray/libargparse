@@ -257,14 +257,14 @@ namespace argparse {
         public: //Mutators
             void set_dest_to_default() override {
                 dest_.set(Converter().from_str(default_value()), Provenance::DEFAULT);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             void set_dest_to_value(std::string value) override {
                 dest_.set(Converter().from_str(value), Provenance::SPECIFIED);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             void set_dest_to_true() override {
@@ -304,26 +304,26 @@ namespace argparse {
         public: //Mutators
             void set_dest_to_default() override {
                 dest_.set(Converter().from_str(default_value()), Provenance::DEFAULT);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             void set_dest_to_value(std::string value) override {
                 dest_.set(Converter().from_str(value), Provenance::SPECIFIED);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             void set_dest_to_true() override {
                 dest_.set(true, Provenance::SPECIFIED);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             void set_dest_to_false() override {
                 dest_.set(false, Provenance::SPECIFIED);
-                dest_.set_name(name());
-                dest_.set_group(group_name());
+                dest_.set_argument_name(name());
+                dest_.set_argument_group(group_name());
             }
 
             bool valid_action() override { 
