@@ -8,7 +8,8 @@ namespace argparse {
     enum class Provenance {
         UNSPECIFIED,//The value was default constructed
         DEFAULT,    //The value was set by a default (e.g. as a command-line argument default value)
-        SPECIFIED   //The value was explicitly specified (e.g. explicitly specified on the command-line)
+        SPECIFIED,  //The value was explicitly specified (e.g. explicitly specified on the command-line)
+        INFERRED,   //The value was inferred, or conditionally set based on other values
     };
 
     /*
