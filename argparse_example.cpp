@@ -32,6 +32,8 @@ int main(int argc, const char** argv) {
     Args args;
     auto parser = argparse::ArgumentParser(argv[0], "My application description");
 
+    parser.version("Version: 0.0.1");
+
     parser.add_argument(args.filename, "filename")
         .help("File to process");
 
@@ -52,12 +54,7 @@ int main(int argc, const char** argv) {
         .help("Show version information")
         .action(argparse::Action::VERSION);
 
-    try {
-        parser.parse_args(argc, argv);
-    } catch(const argparse::ArgParseVersion&) {
-        std::cout << "VERSION" << "\n";
-        return 0;
-    }
+    parser.parse_args(argc, argv);
 
     //Show the arguments
     std::cout << "args.filename: " << args.filename << "\n";
