@@ -121,10 +121,10 @@ namespace argparse {
                 } else if (arg->action() == Action::STORE_FALSE) {
                     arg->set_dest_to_false();
                 } else if (arg->action() == Action::HELP) {
-                    arg->set_dest_to_value("true");
+                    arg->set_dest_to_true(); 
                     throw ArgParseHelp();
                 } else if (arg->action() == Action::VERSION) {
-                    arg->set_dest_to_value("true");
+                    arg->set_dest_to_true(); 
                     throw ArgParseVersion();
                 } else {
                     assert(arg->action() == Action::STORE);

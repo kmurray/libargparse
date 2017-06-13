@@ -7,6 +7,7 @@ struct Args {
     ArgValue<bool> enable_bar;
     ArgValue<std::string> filename;
     ArgValue<size_t> verbosity;
+    ArgValue<bool> show_version;
 };
 
 struct OnOff {
@@ -47,8 +48,16 @@ int main(int argc, const char** argv) {
         .help("Sets the verbosity")
         .default_value("1")
         .choices({"0", "1", "2"});
+    parser.add_argument(args.show_version, "--version", "-V")
+        .help("Show version information")
+        .action(argparse::Action::VERSION);
 
-    parser.parse_args(argc, argv);
+    try {
+        parser.parse_args(argc, argv);
+    } catch(const argparse::ArgParseVersion&) {
+        std::cout << "VERSION" << "\n";
+        return 0;
+    }
 
     //Show the arguments
     std::cout << "args.filename: " << args.filename << "\n";
