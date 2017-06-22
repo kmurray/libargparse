@@ -66,6 +66,8 @@ namespace argparse {
             void parse_args_throw(int argc, const char** argv);
             void parse_args_throw(std::vector<std::string> args);
 
+            //Reset the target values to their initial state
+            void reset_destinations();
 
             //Prints the basic usage
             void print_usage();
@@ -183,6 +185,8 @@ namespace argparse {
 
             //Set the target value to false
             virtual void set_dest_to_false() = 0;
+
+            virtual void reset_dest() = 0;
         public: //Accessors
 
             //Returns a discriptive name build from the long/short option
@@ -303,6 +307,10 @@ namespace argparse {
                 }
                 return true;
             }
+
+            void reset_dest() override {
+                dest_ = ArgValue<T>();
+            }
         private: //Data
             ArgValue<T>& dest_;
     };
@@ -348,6 +356,10 @@ namespace argparse {
             bool valid_action() override { 
                 //Any supported action is valid on a boolean destination
                 return true; 
+            }
+
+            void reset_dest() override {
+                dest_ = ArgValue<bool>();
             }
         private: //Data
             ArgValue<bool>& dest_;

@@ -267,6 +267,14 @@ namespace argparse {
         }
     }
 
+    void ArgumentParser::reset_destinations() {
+        for (const auto& group : argument_groups()) {
+            for (const auto& arg : group.arguments()) {
+                arg->reset_dest();
+            }
+        }
+    }
+
     void ArgumentParser::print_usage() {
         formatter_->set_parser(this);
         os_ << formatter_->format_usage();
