@@ -57,13 +57,13 @@ namespace argparse {
             ArgumentGroup& add_argument_group(std::string description_str);
 
             //Like parse_arg_throw(), but catches exceptions and exits the program
-            void parse_args(int argc, const char** argv, int error_exit_code=1, int help_exit_code=0, int version_exit_code=0);
+            void parse_args(int argc, const char* const* argv, int error_exit_code=1, int help_exit_code=0, int version_exit_code=0);
 
             //Parses the specified command-line arguments and sets the appropriat argument values
             // Returns a vector of Arguments which were specified.
             //If an error occurs throws ArgParseError
             //If an help is requested occurs throws ArgParseHelp
-            void parse_args_throw(int argc, const char** argv);
+            void parse_args_throw(int argc, const char* const* argv);
             void parse_args_throw(std::vector<std::string> args);
 
             //Reset the target values to their initial state
