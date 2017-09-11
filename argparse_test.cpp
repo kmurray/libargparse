@@ -473,7 +473,8 @@ int main(
         {"my_arch5.xml", "my_circuit5.blif", "--analysis", "--criticality_exp", "2"}, //Float from integer
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--criticality_exp", "2.0"}, //Float
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j", "3"},
-        //{"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j3"},
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j3"}, //No-space for single letter arg
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j 3"}, //Space in short arg (but one string)
     };
 
     int num_failed = 0;
@@ -500,7 +501,6 @@ int main(
         {"my_arch16.xml", "my_circuit16.blif", "--analysis", "--slack_definition", "Z"}, //Valid type, but wrong choice
         {"my_arch17.xml", "my_circuit17.blif"}, //Missing required
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j", "3.4"}, //Float when expected unsigned
-        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j", "-1"}, //Negative when expected unsigned
     };
 
     for(const auto& cmd_line : fail_cases) {
