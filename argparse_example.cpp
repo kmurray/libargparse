@@ -8,6 +8,7 @@ struct Args {
     ArgValue<std::string> filename;
     ArgValue<size_t> verbosity;
     ArgValue<bool> show_version;
+    ArgValue<float> utilization;
 };
 
 struct OnOff {
@@ -25,6 +26,29 @@ struct OnOff {
 
     std::vector<std::string> default_choices() {
         return {"on", "off"};
+    }
+};
+
+struct ZeroOneRange {
+    float from_str(std::string str) {
+        float value;
+        std::stringstream ss(str);
+        ss >> value;
+
+        if (value < 0. || value > 1.) {
+            std::stringstream msg;
+            msg << "Value '" << value << "' out of expected range [0.0, 1.0]";
+            throw argparse::ArgParseConversionError(msg.str());
+        }
+        return value;
+    }
+
+    std::string to_str(float value) {
+        return std::to_string(value);
+    }
+
+    std::vector<std::string> default_choices() {
+        return {};
     }
 };
 
@@ -54,12 +78,17 @@ int main(int argc, const char** argv) {
         .help("Show version information")
         .action(argparse::Action::VERSION);
 
+    parser.add_argument<float,ZeroOneRange>(args.utilization, "--util")
+        .help("Sets target utilization")
+        .default_value("1.0");
+
     parser.parse_args(argc, argv);
 
     //Show the arguments
     std::cout << "args.filename: " << args.filename << "\n";
     std::cout << "args.do_foo: " << args.do_foo << "\n";
     std::cout << "args.verbosity: " << args.verbosity << "\n";
+    std::cout << "args.utilization: " << args.utilization << "\n";
     std::cout << "\n";
 
     //Do work
