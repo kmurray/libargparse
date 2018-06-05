@@ -82,6 +82,10 @@ int main(int argc, const char** argv) {
         .help("Sets target utilization")
         .default_value("1.0");
 
+    parser.add_argument<float,ZeroOneRange>(args.utilization, "--zulu")
+        .help("Option with nargs='+'")
+        .default_value("1.0");
+
     parser.parse_args(argc, argv);
 
     //Show the arguments
