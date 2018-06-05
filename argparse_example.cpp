@@ -1,6 +1,7 @@
 #include "argparse.hpp"
 
 using argparse::ArgValue;
+using argparse::ConvertedValue;
 
 struct Args {
     ArgValue<bool> do_foo;
@@ -9,19 +10,24 @@ struct Args {
     ArgValue<size_t> verbosity;
     ArgValue<bool> show_version;
     ArgValue<float> utilization;
+    ArgValue<std::vector<float>> zulus;
 };
 
 struct OnOff {
-    bool from_str(std::string str) {
-        if      (str == "on")  return true;
-        else if (str == "off") return false;
-        std::stringstream msg;
-        throw argparse::ArgParseConversionError("Invalid argument value");
+    ConvertedValue<bool> from_str(std::string str) {
+        ConvertedValue<bool> converted_value;
+
+        if      (str == "on")  converted_value.set_value(true);
+        else if (str == "off") converted_value.set_value(false);
+        else                   converted_value.set_error("Invalid argument value");
+        return converted_value;
     }
 
-    std::string to_str(bool val) {
-        if (val) return "on";
-        return "off";
+    ConvertedValue<std::string> to_str(bool val) {
+        ConvertedValue<std::string> converted_value;
+        if (val) converted_value.set_value("on");
+        else     converted_value.set_value("off");
+        return converted_value;
     }
 
     std::vector<std::string> default_choices() {
@@ -30,17 +36,20 @@ struct OnOff {
 };
 
 struct ZeroOneRange {
-    float from_str(std::string str) {
+    ConvertedValue<float> from_str(std::string str) {
         float value;
         std::stringstream ss(str);
         ss >> value;
 
+        ConvertedValue<float> converted_value;
         if (value < 0. || value > 1.) {
             std::stringstream msg;
             msg << "Value '" << value << "' out of expected range [0.0, 1.0]";
-            throw argparse::ArgParseConversionError(msg.str());
+            converted_value.set_error(msg.str());
+        } else {
+            converted_value.set_value(value);
         }
-        return value;
+        return converted_value;
     }
 
     std::string to_str(float value) {
@@ -82,8 +91,9 @@ int main(int argc, const char** argv) {
         .help("Sets target utilization")
         .default_value("1.0");
 
-    parser.add_argument<float,ZeroOneRange>(args.utilization, "--zulu")
-        .help("Option with nargs='+'")
+    parser.add_argument(args.zulus, "--zulu")
+        .help("One or more float values")
+        .nargs('+')
         .default_value("1.0");
 
     parser.parse_args(argc, argv);
@@ -93,6 +103,7 @@ int main(int argc, const char** argv) {
     std::cout << "args.do_foo: " << args.do_foo << "\n";
     std::cout << "args.verbosity: " << args.verbosity << "\n";
     std::cout << "args.utilization: " << args.utilization << "\n";
+    std::cout << "args.zulu: " << argparse::join(args.zulus.value(), ", ") << "\n";
     std::cout << "\n";
 
     //Do work

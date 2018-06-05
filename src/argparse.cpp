@@ -179,42 +179,51 @@ namespace argparse {
                     for (; nargs_read < max_values_to_read; ++nargs_read) {
                         size_t next_idx = i + 1 + nargs_read;
                         if (next_idx >= arg_strs.size()) {
-                            std::stringstream msg;
-                            msg << "Missing expected argument for " << arg_strs[i] << "";
-                            throw ArgParseError(msg.str());
-
+                            break;
                         }
                         std::string str = arg_strs[next_idx];
 
 
                         if (is_argument(str, str_to_option_arg)) break;
 
+                        if (!arg->is_valid_value(str)) break;
+
                         values.push_back(str);
                     }
 
                     if (nargs_read < min_values_to_read) {
-                        std::stringstream msg;
-                        msg << "Expected at least " << min_values_to_read << " value(s) for argument '" << arg_strs[i] << "'";
-                        throw ArgParseError(msg.str());
+
+                        if (arg->nargs() == '1') {
+                            std::stringstream msg;
+                            msg << "Missing expected argument for " << arg_strs[i] << "";
+                            throw ArgParseError(msg.str());
+
+                        } else {
+                            std::stringstream msg;
+                            msg << "Expected at least " << min_values_to_read << " value";
+                            if (min_values_to_read > 1) {
+                                msg << "s";
+                            }
+                            msg << " for argument '" << arg_strs[i] << "'";
+                            msg << " (found " << values.size() << ")";
+                            throw ArgParseError(msg.str());
+                        }
                     }
                     assert (nargs_read <= max_values_to_read);
+
+                    for (auto val : values) {
+                        if (!is_valid_choice(val, arg->choices())) {
+                            std::stringstream msg;
+                            msg << "Unexpected option value '" << values[0] << "' (expected one of: " << join(arg->choices(), ", ");
+                            msg << ") for " << arg->name();
+                            throw ArgParseError(msg.str());
+                        }
+                    }
 
                     //Set the option values appropriately
                     if (arg->nargs() == '1') {
                         assert(nargs_read == 1);
                         assert(values.size() == 1);
-
-                        auto choices = arg->choices();
-                        if (!choices.empty()) {
-                            //Value must be one off the valid choices
-                            auto find_iter = std::find(choices.begin(), choices.end(), values[0]);
-                            if (find_iter == choices.end()) {
-                                std::stringstream msg;
-                                msg << "Unexpected option value '" << values[0] << "' (expected one of: " << join(choices, ", ");
-                                msg << ") for " << arg->name();
-                                throw ArgParseError(msg.str());
-                            }
-                        }
 
 
                         try {
@@ -228,9 +237,27 @@ namespace argparse {
                             }
                             throw ArgParseConversionError(msg.str());
                         }
+                    } else if (arg->nargs() == '+') {
+                        assert(nargs_read >= 1);
+                        assert(values.size() >= 1);
+
+                        for (auto value : values) {
+                            try {
+                                arg->add_value_to_dest(value); 
+                            } catch (const ArgParseConversionError& e) {
+                                std::stringstream msg;
+                                msg << e.what() << " for " << arg->long_option();
+                                auto short_opt = arg->short_option();
+                                if (!short_opt.empty()) {
+                                    msg << "/" << short_opt;
+                                }
+                                throw ArgParseConversionError(msg.str());
+                            }
+                        }
                     } else {
-                        //Multiple values
-                        assert(false); //TODO: implement
+                        std::stringstream msg;
+                        msg << "Unsupport nargs value '" << arg->nargs() << "'";
+                        throw ArgParseError(msg.str());
                     }
 
                     if (!short_arg_info.is_no_space_short_arg) {
@@ -421,7 +448,7 @@ namespace argparse {
 
     Argument& Argument::nargs(char nargs_type) {
         //TODO: nargs > 1 support: '?', '*', '+'
-        std::array<char,2> valid_nargs = {'0', '1'};
+        auto valid_nargs = {'0', '1', '+'};
 
         auto iter = std::find(valid_nargs.begin(), valid_nargs.end(), nargs_type);
         if (iter == valid_nargs.end()) {
@@ -435,7 +462,7 @@ namespace argparse {
             throw ArgParseError("STORE_TRUE action requires nargs to be '0'");
         } else if (action() == Action::HELP && nargs_type != '0') {
             throw ArgParseError("HELP action requires nargs to be '0'");
-        } else if (action() == Action::STORE && nargs_type != '1') {
+        } else if (action() == Action::STORE && (nargs_type != '1' && nargs_type != '+')) {
             throw ArgParseError("STORE action requires nargs to be '1'");
         }
 
