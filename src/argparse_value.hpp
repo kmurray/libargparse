@@ -70,6 +70,11 @@ namespace argparse {
                 provenance_ = prov;
             }
 
+            void set(T val, Provenance prov) {
+                value_ = val;
+                provenance_ = prov;
+            }
+
             T& mutable_value(Provenance prov) {
                 provenance_ = prov;
                 return value_;
