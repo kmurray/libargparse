@@ -237,9 +237,11 @@ namespace argparse {
                             }
                             throw ArgParseConversionError(msg.str());
                         }
-                    } else if (arg->nargs() == '+') {
-                        assert(nargs_read >= 1);
-                        assert(values.size() >= 1);
+                    } else if (arg->nargs() == '+' || arg->nargs() == '*') {
+                        if (arg->nargs() == '+') {
+                            assert(nargs_read >= 1);
+                            assert(values.size() >= 1);
+                        }
 
                         for (auto value : values) {
                             try {
@@ -448,7 +450,7 @@ namespace argparse {
 
     Argument& Argument::nargs(char nargs_type) {
         //TODO: nargs > 1 support: '?', '*', '+'
-        auto valid_nargs = {'0', '1', '+'};
+        auto valid_nargs = {'0', '1', '+', '*'};
 
         auto iter = std::find(valid_nargs.begin(), valid_nargs.end(), nargs_type);
         if (iter == valid_nargs.end()) {
@@ -462,8 +464,8 @@ namespace argparse {
             throw ArgParseError("STORE_TRUE action requires nargs to be '0'");
         } else if (action() == Action::HELP && nargs_type != '0') {
             throw ArgParseError("HELP action requires nargs to be '0'");
-        } else if (action() == Action::STORE && (nargs_type != '1' && nargs_type != '+')) {
-            throw ArgParseError("STORE action requires nargs to be '1'");
+        } else if (action() == Action::STORE && (nargs_type != '1' && nargs_type != '+' && nargs_type != '*')) {
+            throw ArgParseError("STORE action requires nargs to be '1', '+' or '*'");
         }
 
         nargs_ = nargs_type;
@@ -505,9 +507,31 @@ namespace argparse {
     }
 
     Argument& Argument::default_value(const std::string& value) {
-        default_value_ = value;
+        if (nargs() != '0' && nargs() != '1' && nargs() != '?') {
+            std::stringstream msg;
+            msg << "Scalar default value not allowed for nargs='" << nargs() << "'";
+            throw ArgParseError(msg.str());
+        }
+        default_value_.clear();
+        default_value_.push_back(value);
         default_set_ = true;
         return *this;
+    }
+
+    Argument& Argument::default_value(const std::vector<std::string>& values) {
+        if (nargs() != '+' && nargs() != '*') {
+            std::stringstream msg;
+            msg << "Multiple default value not allowed for nargs='" << nargs() << "'";
+            throw ArgParseError(msg.str());
+        }
+        default_value_ = values;
+        default_set_ = true;
+        return *this;
+    }
+
+    Argument& Argument::default_value(const std::initializer_list<std::string>& values) {
+        //Convert to vector and process as usual
+        return default_value(std::vector<std::string>(values.begin(), values.end()));
     }
 
     Argument& Argument::group_name(std::string grp) {
@@ -535,7 +559,17 @@ namespace argparse {
     std::string Argument::metavar() const { return metavar_; }
     std::vector<std::string> Argument::choices() const { return choices_; }
     Action Argument::action() const { return action_; }
-    std::string Argument::default_value() const { return default_value_; }
+    std::string Argument::default_value() const { 
+        if (default_value_.size() > 1) {
+            std::stringstream msg;
+            msg << "{" << join(default_value_, ", ") << "}";
+            return msg.str();
+        } else if (default_value_.size() == 1) {
+            return default_value_[0]; 
+        } else {
+            return "";
+        }
+    }
     std::string Argument::group_name() const { return group_name_; }
     ShowIn Argument::show_in() const { return show_in_; }
     bool Argument::default_set() const { return default_set_; }

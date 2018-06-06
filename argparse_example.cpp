@@ -11,6 +11,7 @@ struct Args {
     ArgValue<bool> show_version;
     ArgValue<float> utilization;
     ArgValue<std::vector<float>> zulus;
+    ArgValue<std::vector<float>> alphas;
 };
 
 struct OnOff {
@@ -94,7 +95,12 @@ int main(int argc, const char** argv) {
     parser.add_argument(args.zulus, "--zulu")
         .help("One or more float values")
         .nargs('+')
-        .default_value("1.0");
+        .default_value({"1.0", "0.2"});
+
+    parser.add_argument(args.alphas, "--alphas")
+        .help("Zero or more float values")
+        .nargs('*')
+        .default_value({});
 
     parser.parse_args(argc, argv);
 
@@ -104,6 +110,7 @@ int main(int argc, const char** argv) {
     std::cout << "args.verbosity: " << args.verbosity << "\n";
     std::cout << "args.utilization: " << args.utilization << "\n";
     std::cout << "args.zulu: " << argparse::join(args.zulus.value(), ", ") << "\n";
+    std::cout << "args.alphas: " << argparse::join(args.alphas.value(), ", ") << "\n";
     std::cout << "\n";
 
     //Do work

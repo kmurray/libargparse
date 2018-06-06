@@ -6,19 +6,21 @@ namespace argparse {
 
     template<class T>
     class ConvertedValue {
-    public:
-        void set_value(T val) { errored_ = false; value_ = val; }
-        void set_error(std::string msg) { errored_ = true; error_msg_ = msg; }
+        public:
+            typedef T value_type;
+        public:
+            void set_value(T val) { errored_ = false; value_ = val; }
+            void set_error(std::string msg) { errored_ = true; error_msg_ = msg; }
 
-        T value() const { return value_; }
-        std::string error() const { return error_msg_; }
+            T value() const { return value_; }
+            std::string error() const { return error_msg_; }
 
-        operator bool() { return valid(); }
-        bool valid() const { return !errored_; }
-    private:
-        T value_;
-        std::string error_msg_;
-        bool errored_ = true;
+            operator bool() { return valid(); }
+            bool valid() const { return !errored_; }
+        private:
+            T value_;
+            std::string error_msg_;
+            bool errored_ = true;
     };
 
     //How the value associated with an argumetn was initialized

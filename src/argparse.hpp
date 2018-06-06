@@ -169,12 +169,14 @@ namespace argparse {
     class Argument {
         public:
             Argument(std::string long_opt, std::string short_opt);
-        public: //Mutators
+        public: //Configuration Mutators
             //Sets the hlep text
             Argument& help(std::string help_str);
 
             //Sets the defuault value
             Argument& default_value(const std::string& default_val);
+            Argument& default_value(const std::vector<std::string>& default_val);
+            Argument& default_value(const std::initializer_list<std::string>& default_val);
 
             //Sets the action
             Argument& action(Action action);
@@ -197,6 +199,7 @@ namespace argparse {
             //Sets where this option appears in the help
             Argument& show_in(ShowIn show);
 
+        public: //Option setting mutators
             //Sets the target value to the specified default
             virtual void set_dest_to_default() = 0;
 
@@ -213,8 +216,6 @@ namespace argparse {
             virtual void set_dest_to_false() = 0;
 
             virtual void reset_dest() = 0;
-
-            virtual bool is_valid_value(std::string value) = 0;
         public: //Accessors
 
             //Returns a discriptive name build from the long/short option
@@ -259,8 +260,11 @@ namespace argparse {
             //Returns true if this is a positional argument
             bool positional() const;
 
-            //Returns treu if the default_value() was set
+            //Returns true if the default_value() was set
             bool default_set() const;
+
+            //Returns true if the proposed value is legal
+            virtual bool is_valid_value(std::string value) = 0;
         public: //Lifetime
             virtual ~Argument() {}
             Argument(const Argument&) = default;
@@ -280,7 +284,7 @@ namespace argparse {
             Action action_ = Action::STORE;
             bool required_ = false;
 
-            std::string default_value_;
+            std::vector<std::string> default_value_;
 
             std::string group_name_;
             ShowIn show_in_ = ShowIn::USAGE_AND_HELP;
@@ -450,13 +454,17 @@ namespace argparse {
             void add_value_to_dest(std::string value) override {
                 if (dest_.provenance() == Provenance::SPECIFIED
                     && dest_.argument_name() != name()) {
-                    throw ArgParseError("Argument destination already set by " + dest_.argument_name() + " (tryin to set from " + name() + ")");
+                    throw ArgParseError("Argument destination already set by " + dest_.argument_name() + " (trying to set from " + name() + ")");
                 }
 
                 auto& target = dest_.mutable_value(Provenance::SPECIFIED);
 
                 //Insert is more general than push_back
-                target.insert(std::end(target), Converter().from_str(value));
+                auto converted_value = Converter().from_str(value);
+                if (!converted_value) {
+                    throw ArgParseConversionError(converted_value.error());
+                }
+                target.insert(std::end(target), converted_value.value());
 
                 dest_.set_argument_name(name());
                 dest_.set_argument_group(group_name());

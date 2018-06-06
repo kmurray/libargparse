@@ -88,6 +88,7 @@ struct Args {
     ArgValue<bool> gen_post_synthesis_netlist;
 
     ArgValue<std::vector<float>> one_or_more;
+    ArgValue<std::vector<float>> zero_or_more;
 };
 
 bool expect_pass(argparse::ArgumentParser& parser, std::vector<std::string> cmd_line);
@@ -460,6 +461,8 @@ int main(
 
     test_grp.add_argument(args.one_or_more, "--one_or_more")
             .nargs('+');
+    test_grp.add_argument(args.zero_or_more, "--zero_or_more")
+            .nargs('*');
 
 #ifndef TEST
     auto specified_args = parser.parse_args(argc, argv);
@@ -489,7 +492,16 @@ int main(
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "-j3", "--analysis"}, //Space in short arg (but one string)
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--one_or_more", "3.24"}, //Single value argument
         {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--one_or_more", "3.24", "10", "29"}, //Multiple values
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--zero_or_more"}, //No values
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--zero_or_more", "234"}, //One values
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--zero_or_more", "234", "254", "1.23"}, //Multiple values
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--zero_or_more", "234", "254", "1.23", "--one_or_more", "284"}, //* followed by +
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--zero_or_more", "--one_or_more", "284"}, //* followed by +
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--one_or_more", "284", "--zero_or_more", }, //+ followed by *
+        {"my_arch6.xml", "my_circuit6.blif", "--analysis", "--one_or_more", "284", "--zero_or_more", "798"}, //+ followed by *
         {"my_arch6.xml", "--analysis", "--one_or_more", "3.24", "10", "29", "my_circuit6.blif"}, //positional after nargs='+'
+        {"my_arch6.xml", "--analysis", "--one_or_more", "3.24", "10", "29", "my_circuit6.blif"}, //positional after nargs='+'
+        {"my_arch6.xml", "--analysis", "--zero_or_more", "3.24", "10", "29", "my_circuit6.blif"}, //positional after nargs='*'
     };
 
     int num_failed = 0;
