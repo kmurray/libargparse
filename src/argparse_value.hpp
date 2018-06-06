@@ -1,6 +1,7 @@
 #ifndef ARGPARSE_VALUE_HPP
 #define ARGPARSE_VALUE_HPP
 #include <iostream>
+#include "argparse_error.hpp"
 
 namespace argparse {
 
@@ -61,7 +62,7 @@ namespace argparse {
 
         public: //Mutators
             void set(ConvertedValue<T> val, Provenance prov) {
-                if (!val) {
+                if (!val.valid()) {
                     //If the value didn't convert properly, it should
                     //have an error message so raise it
                     throw ArgParseConversionError(val.error());
