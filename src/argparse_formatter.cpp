@@ -86,7 +86,7 @@ namespace argparse {
 
         std::stringstream ss;
         ss << "\n";
-        for(auto& line : wrap_width(parser_->description(), total_width_)) {
+        for(auto& line : wrap_width(parser_->description(), total_width_, {" ", "/"})) {
             ss << line;
         }
         ss << "\n";
@@ -133,7 +133,7 @@ namespace argparse {
                     }
                     
                     //Argument help
-                    auto help_lines = wrap_width(arg->help(), total_width_ - option_name_width_);
+                    auto help_lines = wrap_width(arg->help(), total_width_ - option_name_width_, {" ", "/"});
                     for (auto& line : help_lines) {
                         //Pad out the help
                         assert(pos <= option_name_width_);
@@ -157,7 +157,7 @@ namespace argparse {
                 if (!group.epilog().empty()) {
                     ss << "\n";
 
-                    auto epilog_lines = wrap_width(group.epilog(), total_width_ - INDENT.size());
+                    auto epilog_lines = wrap_width(group.epilog(), total_width_ - INDENT.size(), {" ", "/"});
                     for (auto& line : epilog_lines) {
                         ss << INDENT << line;
                     }
@@ -174,7 +174,7 @@ namespace argparse {
 
         std::stringstream ss;
         ss << "\n";
-        for(auto& line : wrap_width(parser_->epilog(), total_width_)) {
+        for(auto& line : wrap_width(parser_->epilog(), total_width_, {" ", "/"})) {
             ss << line;
         }
         ss << "\n";

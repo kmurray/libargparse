@@ -36,7 +36,7 @@ namespace argparse {
 
     char* strdup(const char* str);
 
-    std::vector<std::string> wrap_width(std::string str, size_t width, std::vector<std::string> split_str={" ", "/"});
+    std::vector<std::string> wrap_width(std::string str, size_t width, std::vector<std::string> split_str);
 
     std::string basename(std::string filepath);
 } //namespace
