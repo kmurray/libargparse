@@ -26,6 +26,8 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     #Create the test executable
     add_executable(argparse_test argparse_test.cpp)
     target_link_libraries(argparse_test libargparse)
+    add_test(NAME argparse_test COMMAND argparse_test)
+    enable_testing()
 
     #Create the example executable
     add_executable(argparse_example argparse_example.cpp)
