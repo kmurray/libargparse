@@ -12,13 +12,14 @@ endif()
 
 set(LIB_INCLUDE_DIRS src)
 file(GLOB_RECURSE LIB_SOURCES src/*.cpp)
-file(GLOB_RECURSE LIB_HEADERS src/*.hpp)
+file(GLOB_RECURSE LIB_HEADERS src/*.hpp src/*.tpp)
 
 #Create the library
 add_library(libargparse STATIC
              ${LIB_HEADERS}
              ${LIB_SOURCES})
 set_target_properties(libargparse PROPERTIES PREFIX "") #Avoid extra 'lib' prefix
+set_target_properties(libargparse PROPERTIES PUBLIC_HEADER "${LIB_HEADERS}")
 target_include_directories(libargparse PUBLIC ${LIB_INCLUDE_DIRS})
 install(TARGETS libargparse)
 
