@@ -20,6 +20,7 @@ add_library(libargparse STATIC
              ${LIB_SOURCES})
 set_target_properties(libargparse PROPERTIES PREFIX "") #Avoid extra 'lib' prefix
 target_include_directories(libargparse PUBLIC ${LIB_INCLUDE_DIRS})
+install(TARGETS libargparse)
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     #Create the test executable
